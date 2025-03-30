@@ -185,10 +185,27 @@ docker-compose up -d
 
 ## API Endpoints
 
-The application exposes minimal HTTP endpoints since most functionality is handled through MCP servers:
+The application exposes several HTTP endpoints:
 
+- `GET /api/hubspot/signups` - Get recent signups from HubSpot
+  - Query parameters:
+    - `process` - Set to 'true' to process and assess signups (default: false)
+    - `limit` - Number of signups to retrieve (default: 10)
+
+- `GET /api/hubspot/assess-recent` - Assess recent signups (limited to 3)
+  - Retrieves, processes, and qualifies recent signups
+  - Sends notifications to Slack for each assessment
+  
 - `GET /api/mcp/status` - Check MCP servers status
+  - Returns status of available and running MCP servers
+
 - `GET /health` - Health check endpoint with service status
+  - Returns status of MCP and OpenAI services
+
+- `POST /api/slack/test-notification` - Send a test notification to Slack
+  - Request body:
+    - `company` - Company name (default: 'Test Company')
+    - `assessment` - Assessment text (default: 'This is a test qualification assessment.')
 
 ## MCP Integration
 
