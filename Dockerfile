@@ -1,28 +1,24 @@
 FROM node:18-alpine
 
-# Install Docker client for running MCP server containers
-RUN apk add --no-cache docker-cli
+WORKDIR /app
 
-# Create app directory
-WORKDIR /usr/src/app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
+# Copy package files and install dependencies
+COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy project files
-COPY . .
+# Copy source code and configuration
+COPY tsconfig.json ./
+COPY src ./src
+COPY mcp.json ./
 
-# Create logs directory
-RUN mkdir -p logs
-
-# Build TypeScript project
+# Build TypeScript code
 RUN npm run build
 
-# Expose the port the app runs on
-EXPOSE 3000
+# Set environment variables
+ENV NODE_ENV=production
 
-# Command to run the app
-CMD ["node", "dist/index.js"] 
+# Make the run-llm-agent script executable
+RUN chmod +x ./dist/scripts/run-llm-agent.js
+
+# Run the LLM agent script
+CMD ["node", "./dist/scripts/run-llm-agent.js"] 

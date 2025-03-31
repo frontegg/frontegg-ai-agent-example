@@ -1,1 +1,0 @@
-console.log('Testing connection to HubSpot MCP server'); const { mcpClient } = require('./dist/services/mcp'); mcpClient.initialize().then(() => mcpClient.startServer('hubspot')).then(success => console.log('Started server:', success)).catch(error => console.error('Error:', error.message));

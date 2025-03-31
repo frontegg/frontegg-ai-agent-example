@@ -1,231 +1,155 @@
-# AI Agent for Lead Qualification
+# Qualification Agent
 
-This project implements an AI agent that connects to HubSpot and Slack via the Model Context Protocol (MCP) servers to automatically assess and qualify new company signups using LangChain and OpenAI.
+An intelligent agent that connects to HubSpot and Slack using the Model Context Protocol (MCP) and LangChain. The agent automatically retrieves the latest company signup from HubSpot, qualifies the lead, and sends an assessment message to Slack.
 
 ## Features
 
-- Connects to HubSpot via MCP to retrieve new signups
-- Uses LangChain with OpenAI's GPT-4 to assess company qualification
-- Sends qualification notifications to Slack via MCP
-- Implements official MCP servers for service connections
-
-## Project Structure
-
-```
-qualification-agent/
-├── src/
-│   ├── index.ts                 # Main application entry point
-│   ├── services/                # Services layer
-│   │   ├── hubspot.ts           # HubSpot service using MCP
-│   │   ├── mcp.ts               # MCP client implementation
-│   │   ├── openai.ts            # LangChain with OpenAI service
-│   │   └── slack.ts             # Slack service using MCP
-│   ├── types/                   # Type definitions
-│   │   └── index.ts             # Shared type interfaces
-│   └── utils/                   # Utilities
-│       └── logger.ts            # Logging utility
-├── config/                      # Configuration files
-├── .env.example                 # Example environment variables
-├── package.json                 # Project dependencies
-├── tsconfig.json                # TypeScript configuration
-├── Dockerfile                   # Docker configuration
-├── docker-compose.yml           # Docker Compose configuration
-└── README.md                    # Project documentation
-```
+- 🔌 Connects to HubSpot and Slack using MCP servers
+- 🤖 Uses LangChain for agent creation and OpenAI for intelligent analysis
+- 🔄 Automatically processes latest company signups
+- 🔍 Web browsing capability for enhanced company research
+- 📊 Provides qualification scores and recommended actions
+- 📣 Sends notifications to Slack with assessment results
 
 ## Prerequisites
 
-### Slack Setup
-
-1. Create a Slack App at [api.slack.com/apps](https://api.slack.com/apps)
-2. Add the following Bot Token Scopes:
-   - `channels:history` - View messages in public channels
-   - `channels:read` - View basic channel information
-   - `chat:write` - Send messages
-   - `reactions:write` - Add emoji reactions
-   - `users:read` - View user information
-3. Install the app to your workspace
-4. Save the Bot User OAuth Token (starts with `xoxb-`)
-5. Find your Team ID (starts with a `T`)
-
-### HubSpot Setup
-
-1. Log into your HubSpot account
-2. Go to Settings > Integrations > Private Apps
-3. Create a new private app with the following scopes:
-   - `crm.objects.contacts.read`
-   - `crm.objects.contacts.write`
-   - `crm.objects.companies.read`
-   - `crm.objects.companies.write`
-   - `crm.objects.deals.read`
-   - `crm.objects.deals.write`
-4. Copy the access token
+- Node.js (v18+)
+- npm or yarn
+- OpenAI API key
+- Slack Bot Token and Team ID
+- HubSpot Access Token
 
 ## Installation
 
-### Local Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/qualification-agent.git
-cd qualification-agent
-```
-
+1. Clone the repository
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
-3. Create a `.env` file from the template:
-```bash
-cp .env.example .env
+## Configuration
+
+1. Create a `.env` file in the root directory with the following environment variables:
+
+```
+OPENAI_API_KEY=your_openai_api_key
+SLACK_BOT_TOKEN=your_slack_bot_token
+SLACK_TEAM_ID=your_slack_team_id
+HUBSPOT_ACCESS_TOKEN=your_hubspot_access_token
 ```
 
-4. Fill in the environment variables in the `.env` file:
-   - `OPENAI_API_KEY`: Your OpenAI API key
-   - `SLACK_BOT_TOKEN`: Your Slack bot token (starts with `xoxb-`)
-   - `SLACK_TEAM_ID`: Your Slack team ID (starts with `T`)
-   - `HUBSPOT_ACCESS_TOKEN`: Your HubSpot access token
+2. The MCP configuration is stored in `mcp.json` which defines the Slack and HubSpot servers.
 
-### Docker Installation
+## Running the Agent
 
-1. Clone the repository and navigate to the project folder:
-```bash
-git clone https://github.com/yourusername/qualification-agent.git
-cd qualification-agent
-```
-
-2. Create a `.env` file with your credentials:
-```bash
-cp .env.example .env
-# Edit the .env file with your credentials
-```
-
-3. Build and start the containers:
-```bash
-docker-compose up -d
-```
-
-4. To view logs:
-```bash
-docker-compose logs -f
-```
-
-5. To stop the containers:
-```bash
-docker-compose down
-```
-
-## MCP Servers
-
-This project uses the Model Context Protocol (MCP) to connect to services:
-
-### Slack MCP Server
-- Official MCP server for Slack: [@modelcontextprotocol/server-slack](https://github.com/modelcontextprotocol/servers/tree/main/src/slack)
-- Installed via NPX during runtime
-
-### HubSpot MCP Server
-- Community MCP server for HubSpot: [mcp-hubspot](https://github.com/baryhuang/mcp-hubspot)
-- Runs via Docker
-
-## LangChain Integration
-
-This project uses LangChain to interact with OpenAI's GPT-4. LangChain provides:
-
-- Simplified prompt management
-- Structured output parsing
-- Easy integration with multiple LLM providers
-- Ability to create processing chains
-
-The company qualification logic is implemented as a LangChain processing pipeline in `src/services/openai.ts`:
-
-```typescript
-// Create the chain
-const chain = promptTemplate.pipe(chatModel).pipe(parser);
-
-// Run the chain
-const result = await chain.invoke({
-  name: companyData.name,
-  industry: companyData.industry || 'N/A',
-  // ... other parameters
-  format_instructions: parser.getFormatInstructions()
-});
-```
-
-## Development
-
-```bash
-npm run dev
-```
-
-## Testing
-
-Run a simple test of the qualification assessment:
-```bash
-npm run test:simple
-```
-
-## Building for Production
+### Using npm
 
 ```bash
 npm run build
+npm run llm-agent
 ```
 
-## Running in Production
+### Using Docker
 
-### Node.js
+Build and run the Docker container:
+
 ```bash
-npm start
+docker build -t qualification-agent .
+docker run --env-file .env qualification-agent
 ```
 
-### Docker
-```bash
-docker-compose up -d
+## How It Works
+
+The agent follows these steps:
+
+1. Connects to HubSpot and Slack using MCP servers
+2. Retrieves the latest company signup from HubSpot
+3. Uses GPT-4o's web browsing capability to research the company online
+4. Analyzes all available information to determine if they're a good potential customer
+5. Generates a qualification assessment with a score (1-10) and recommended action
+6. Sends the assessment to Slack channel C08KN71QZD1
+
+All processing includes source attribution to show where information was obtained from.
+
+## Troubleshooting
+
+- Check that all required environment variables are set
+- Ensure the MCP configuration in `mcp.json` is correct
+- Look at the logs for detailed information and error messages
+- Verify that the Slack bot has the necessary permissions
+- Make sure your OpenAI API key has access to GPT-4o with browsing
+
+## Development
+
+The main components of the system are:
+
+- `src/scripts/run-llm-agent.ts`: The main entry point for running the agent
+- `src/services/llm-agent.ts`: The agent logic with web search integration
+- `mcp.json`: MCP server configuration
+
+## LangChain MCP Adapters Integration
+
+This project uses the `@langchain/mcp-adapters` library to convert MCP servers into LangChain tools. This allows us to:
+
+1. Connect to multiple MCP servers (Slack, HubSpot)
+2. Convert their tools into LangChain-compatible tools
+3. Use these tools with LangChain's agent framework
+
+The implementation is in `src/services/llm-agent.ts`:
+
+```typescript
+// Create a MultiServerMCPClient to connect to multiple MCP servers
+const mcpClient = new MultiServerMCPClient();
+
+// Connect to HubSpot MCP server
+await mcpClient.connectToServerViaStdio(
+  'hubspot',
+  'docker',
+  ['run', '-i', '--rm', 'buryhuang/mcp-hubspot:latest', '...']
+);
+
+// Connect to Slack MCP server
+await mcpClient.connectToServerViaStdio(
+  'slack',
+  process.execPath,
+  ['./node_modules/@modelcontextprotocol/server-slack/dist/index.js']
+);
+
+// Get all tools as LangChain tools
+const tools = mcpClient.getTools();
+
+// Create a LangChain agent with these tools
+const agent = AgentExecutor.fromAgentAndTools({
+  agent: createStructuredChatAgent({
+    llm: model,
+    tools: tools
+  }),
+  tools: tools,
+  verbose: true
+});
+
+// Run the agent
+const result = await agent.invoke({
+  input: "Assess the latest signup from HubSpot"
+});
 ```
 
 ## API Endpoints
 
-The application exposes several HTTP endpoints:
+The application provides several HTTP endpoints:
 
 - `GET /api/hubspot/signups` - Get recent signups from HubSpot
-  - Query parameters:
-    - `process` - Set to 'true' to process and assess signups (default: false)
-    - `limit` - Number of signups to retrieve (default: 10)
-
-- `GET /api/hubspot/assess-recent` - Assess recent signups (limited to 3)
-  - Retrieves, processes, and qualifies recent signups
-  - Sends notifications to Slack for each assessment
+  
+- `GET /api/hubspot/assess-recent` - Assess recent signups
   
 - `GET /api/mcp/status` - Check MCP servers status
-  - Returns status of available and running MCP servers
-
-- `GET /health` - Health check endpoint with service status
-  - Returns status of MCP and OpenAI services
-
+  
+- `GET /health` - Health check endpoint
+  
 - `POST /api/slack/test-notification` - Send a test notification to Slack
-  - Request body:
-    - `company` - Company name (default: 'Test Company')
-    - `assessment` - Assessment text (default: 'This is a test qualification assessment.')
 
-## MCP Integration
-
-This project uses MCP servers to handle all service integrations:
-
-### HubSpot Integration
-- Company and contact management
-- New signup processing
-- Webhook handling for real-time updates
-
-### Slack Integration
-- Qualification notifications
-- Status updates
-- Team communication
-
-All service interactions are handled through the MCP servers, eliminating the need for direct API route handling.
-
-## Adding Qualification Logic
-
-The qualification logic can be customized in the `src/services/openai.ts` file, specifically in the `assessCompanyQualification` function. You can modify the LangChain prompt template and parser to adjust the assessment criteria.
+- `GET /api/llm-agent/process-latest-signup` - Process the latest signup using the LangChain LLM agent
 
 ## License
 
