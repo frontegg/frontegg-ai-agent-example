@@ -1,156 +1,140 @@
-# Qualification Agent
+# AI Agent for Company Qualification
 
-An intelligent agent that connects to HubSpot and Slack using the Model Context Protocol (MCP) and LangChain. The agent automatically retrieves the latest company signup from HubSpot, qualifies the lead, and sends an assessment message to Slack.
+An AI agent that connects to Hubspot and Slack via MCP to assess company qualification. Built with Next.js, LangChain, and OpenAI.
 
 ## Features
 
-- 🔌 Connects to HubSpot and Slack using MCP servers
-- 🤖 Uses LangChain for agent creation and OpenAI for intelligent analysis
-- 🔄 Automatically processes latest company signups
-- 🔍 Web browsing capability for enhanced company research
-- 📊 Provides qualification scores and recommended actions
-- 📣 Sends notifications to Slack with assessment results
+- 🤖 AI-powered company qualification assessment
+- 🔄 Real-time chat interface
+- 🔍 Web search capabilities
+- 📊 HubSpot integration for company data
+- 💬 Slack notifications for team updates
+- 🌙 Dark mode support
+- 📱 Responsive design
 
 ## Prerequisites
 
-- Node.js (v18+)
-- npm or yarn
+- Node.js 18+ and npm
 - OpenAI API key
-- Slack Bot Token and Team ID
-- HubSpot Access Token
+- HubSpot API key
+- Slack API key
+- MCP configuration file (`mcp.json`)
+
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+OPENAI_API_KEY=your_openai_api_key
+HUBSPOT_API_KEY=your_hubspot_api_key
+SLACK_BOT_TOKEN=your_slack_bot_token
+```
 
 ## Installation
 
-1. Clone the repository
-2. Install dependencies:
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/ai-agent-rafi.git
+cd ai-agent-rafi
+```
 
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-## Configuration
-
-1. Create a `.env` file in the root directory with the following environment variables:
-
+3. Create and configure your `mcp.json` file:
+```json
+{
+  "servers": [
+    {
+      "name": "hubspot",
+      "type": "hubspot",
+      "config": {
+        "apiKey": "your_hubspot_api_key"
+      }
+    },
+    {
+      "name": "slack",
+      "type": "slack",
+      "config": {
+        "token": "your_slack_bot_token"
+      }
+    }
+  ]
+}
 ```
-OPENAI_API_KEY=your_openai_api_key
-SLACK_BOT_TOKEN=your_slack_bot_token
-SLACK_TEAM_ID=your_slack_team_id
-HUBSPOT_ACCESS_TOKEN=your_hubspot_access_token
-```
-
-2. The MCP configuration is stored in `mcp.json` which defines the Slack and HubSpot servers.
-
-## Running the Agent
-
-### Using npm
-
-```bash
-npm run build
-npm run llm-agent
-```
-
-### Using Docker
-
-Build and run the Docker container:
-
-```bash
-docker build -t qualification-agent .
-docker run --env-file .env qualification-agent
-```
-
-## How It Works
-
-The agent follows these steps:
-
-1. Connects to HubSpot and Slack using MCP servers
-2. Retrieves the latest company signup from HubSpot
-3. Uses GPT-4o's web browsing capability to research the company online
-4. Analyzes all available information to determine if they're a good potential customer
-5. Generates a qualification assessment with a score (1-10) and recommended action
-6. Sends the assessment to Slack channel C08KN71QZD1
-
-All processing includes source attribution to show where information was obtained from.
-
-## Troubleshooting
-
-- Check that all required environment variables are set
-- Ensure the MCP configuration in `mcp.json` is correct
-- Look at the logs for detailed information and error messages
-- Verify that the Slack bot has the necessary permissions
-- Make sure your OpenAI API key has access to GPT-4o with browsing
 
 ## Development
 
-The main components of the system are:
-
-- `src/scripts/run-llm-agent.ts`: The main entry point for running the agent
-- `src/services/llm-agent.ts`: The agent logic with web search integration
-- `mcp.json`: MCP server configuration
-
-## LangChain MCP Adapters Integration
-
-This project uses the `@langchain/mcp-adapters` library to convert MCP servers into LangChain tools. This allows us to:
-
-1. Connect to multiple MCP servers (Slack, HubSpot)
-2. Convert their tools into LangChain-compatible tools
-3. Use these tools with LangChain's agent framework
-
-The implementation is in `src/services/llm-agent.ts`:
-
-```typescript
-// Create a MultiServerMCPClient to connect to multiple MCP servers
-const mcpClient = new MultiServerMCPClient();
-
-// Connect to HubSpot MCP server
-await mcpClient.connectToServerViaStdio(
-  'hubspot',
-  'docker',
-  ['run', '-i', '--rm', 'buryhuang/mcp-hubspot:latest', '...']
-);
-
-// Connect to Slack MCP server
-await mcpClient.connectToServerViaStdio(
-  'slack',
-  process.execPath,
-  ['./node_modules/@modelcontextprotocol/server-slack/dist/index.js']
-);
-
-// Get all tools as LangChain tools
-const tools = mcpClient.getTools();
-
-// Create a LangChain agent with these tools
-const agent = AgentExecutor.fromAgentAndTools({
-  agent: createStructuredChatAgent({
-    llm: model,
-    tools: tools
-  }),
-  tools: tools,
-  verbose: true
-});
-
-// Run the agent
-const result = await agent.invoke({
-  input: "Assess the latest signup from HubSpot"
-});
+Run the Next.js development server:
+```bash
+npm run dev:next
 ```
 
-## API Endpoints
+The application will be available at `http://localhost:3000`.
 
-The application provides several HTTP endpoints:
+## Building for Production
 
-- `GET /api/hubspot/signups` - Get recent signups from HubSpot
-  
-- `GET /api/hubspot/assess-recent` - Assess recent signups
-  
-- `GET /api/mcp/status` - Check MCP servers status
-  
-- `GET /health` - Health check endpoint
-  
-- `POST /api/slack/test-notification` - Send a test notification to Slack
+1. Build the Next.js application:
+```bash
+npm run build:next
+```
 
-- `GET /api/llm-agent/process-latest-signup` - Process the latest signup using the LangChain LLM agent
+2. Start the production server:
+```bash
+npm run start:next
+```
+
+## Project Structure
+
+```
+src/
+├── app/                    # Next.js app directory
+│   ├── api/               # API routes
+│   │   └── agent/        # Agent API endpoint
+│   │   └── hubspot/      # HubSpot API endpoint
+│   │   └── mcp/          # MCP API endpoint
+│   │   └── slack/        # Slack API endpoint
+│   │   └── health/       # Health check endpoint
+│   │   └── llm-agent/    # LLM agent API endpoint
+│   ├── layout.tsx        # Root layout
+│   └── page.tsx          # Home page
+├── components/           # React components
+│   ├── AgentChat.tsx    # Main chat interface
+│   ├── ChatMessage.tsx  # Individual message component
+│   ├── PromptInput.tsx  # Message input component
+│   └── QualificationCard.tsx  # Qualification result display
+├── services/            # Business logic
+│   └── llm-agent.ts    # LLM agent implementation
+└── utils/              # Utility functions
+    └── client-logger.ts # Client-side logging
+```
+
+## Features
+
+### Chat Interface
+- Real-time message updates
+- Markdown support with syntax highlighting
+- Code block formatting
+- Loading indicators
+- Dark mode support
+
+### Agent Capabilities
+- Company qualification assessment
+- Web search integration
+- HubSpot data retrieval
+- Slack notifications
+- Source tracking and citation
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-MIT 
+This project is licensed under the MIT License - see the LICENSE file for details. 
