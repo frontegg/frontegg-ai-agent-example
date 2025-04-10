@@ -6,7 +6,8 @@ import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts
 import { WebBrowser } from 'langchain/tools/webbrowser';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { Client } from '@modelcontextprotocol/sdk/client/index';
-import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp';
+import { OAuthClientInformation, OAuthTokens } from '@modelcontextprotocol/sdk/shared/auth';
 
 /**
  * LLM Agent that uses LangChain and MCP Adapters
@@ -44,13 +45,54 @@ export class LLMAgent {
 			const transport = new StreamableHTTPClientTransport(new URL('http://localhost:3040/mcp/v1'), {
 				authProvider: {
 					tokens: () => {
-						return ['abc']
-					}
-				}
+						return {
+							access_token: 'abc',
+							token_type: 'Bearer',
+							expires_in: 3600,
+							scope: 'read write',
+							refresh_token: 'def',
+						};
+					},
+					redirectUrl: '',
+					clientMetadata: {
+						redirect_uris: [],
+						scope: undefined,
+						token_endpoint_auth_method: undefined,
+						grant_types: undefined,
+						response_types: undefined,
+						client_name: undefined,
+						client_uri: undefined,
+						logo_uri: undefined,
+						contacts: undefined,
+						tos_uri: undefined,
+						policy_uri: undefined,
+						jwks_uri: undefined,
+						jwks: undefined,
+						software_id: undefined,
+						software_version: undefined,
+					},
+					clientInformation: function ():
+						| OAuthClientInformation
+						| undefined
+						| Promise<OAuthClientInformation | undefined> {
+						throw new Error('Function not implemented.');
+					},
+					saveTokens: function (tokens: OAuthTokens): void | Promise<void> {
+						throw new Error('Function not implemented.');
+					},
+					redirectToAuthorization: function (authorizationUrl: URL): void | Promise<void> {
+						throw new Error('Function not implemented.');
+					},
+					saveCodeVerifier: function (codeVerifier: string): void | Promise<void> {
+						throw new Error('Function not implemented.');
+					},
+					codeVerifier: function (): string | Promise<string> {
+						throw new Error('Function not implemented.');
+					},
+				},
 			});
 			await this.mcpClient.connect(transport);
 			const tools = await loadMcpTools('frontegg', this.mcpClient);
-
 
 			// Log information about loaded tools
 			logger.info(`Loaded ${tools.length} tools from MCP servers`);
