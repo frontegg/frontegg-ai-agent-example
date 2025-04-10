@@ -39,7 +39,7 @@ async function main() {
     
     // Create the LLM agent
     logger.info('Creating LLM Agent...');
-    const agent = createLLMAgent(model);
+    const agent = createLLMAgent();
     
     // Initialize the agent with MCP servers
     logger.info('Initializing LLM Agent with MCP servers...');

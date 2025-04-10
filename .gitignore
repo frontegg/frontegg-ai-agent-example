@@ -36,4 +36,5 @@ coverage/
 *.tsbuildinfo
 
 # Optional npm cache directory
-.npm 
+.npm
+.next

@@ -7,11 +7,7 @@ let agent: any = null;
 
 async function getAgent() {
   if (!agent) {
-    const model = new ChatOpenAI({
-      modelName: 'gpt-4-turbo-preview',
-      temperature: 0.7,
-    });
-    agent = createLLMAgent(model);
+    agent = createLLMAgent();
     await agent.initialize();
   }
   return agent;
