@@ -1,13 +1,27 @@
-import { ChatOpenAI } from '@langchain/openai';
-import { loadMcpTools, MultiServerMCPClient } from '@langchain/mcp-adapters';
+import { ChatOpenAI, OpenAIEmbeddings } from '@langchain/openai';
+import { loadMcpTools } from '@langchain/mcp-adapters';
 import { logger } from '../utils/logger';
 import { AgentExecutor, createOpenAIFunctionsAgent } from 'langchain/agents';
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
 import { WebBrowser } from 'langchain/tools/webbrowser';
-import { OpenAIEmbeddings } from '@langchain/openai';
 import { Client } from '@modelcontextprotocol/sdk/client/index';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp';
-import { OAuthClientInformation, OAuthTokens } from '@modelcontextprotocol/sdk/shared/auth';
+
+// @ts-ignore
+class TestTransport extends StreamableHTTPClientTransport {
+	constructor(url: URL) {
+		super(url);
+	}
+
+	async _commonHeaders() {
+		return {
+			'Authorization': `Bearer ${process.env.MCP_API_KEY}`,
+			'tenant-id': process.env.TENANT_ID,
+			'agent-id': process.env.AGENT_ID,
+			'user-id': process.env.USER_ID,
+		}
+	}
+}
 
 /**
  * LLM Agent that uses LangChain and MCP Adapters
@@ -42,55 +56,7 @@ export class LLMAgent {
 		try {
 			logger.info('Initializing LLM Agent with MCP servers');
 
-			const transport = new StreamableHTTPClientTransport(new URL('http://localhost:3040/mcp/v1'), {
-				authProvider: {
-					tokens: () => {
-						return {
-							access_token: 'abc',
-							token_type: 'Bearer',
-							expires_in: 3600,
-							scope: 'read write',
-							refresh_token: 'def',
-						};
-					},
-					redirectUrl: '',
-					clientMetadata: {
-						redirect_uris: [],
-						scope: undefined,
-						token_endpoint_auth_method: undefined,
-						grant_types: undefined,
-						response_types: undefined,
-						client_name: undefined,
-						client_uri: undefined,
-						logo_uri: undefined,
-						contacts: undefined,
-						tos_uri: undefined,
-						policy_uri: undefined,
-						jwks_uri: undefined,
-						jwks: undefined,
-						software_id: undefined,
-						software_version: undefined,
-					},
-					clientInformation: function ():
-						| OAuthClientInformation
-						| undefined
-						| Promise<OAuthClientInformation | undefined> {
-						throw new Error('Function not implemented.');
-					},
-					saveTokens: function (tokens: OAuthTokens): void | Promise<void> {
-						throw new Error('Function not implemented.');
-					},
-					redirectToAuthorization: function (authorizationUrl: URL): void | Promise<void> {
-						throw new Error('Function not implemented.');
-					},
-					saveCodeVerifier: function (codeVerifier: string): void | Promise<void> {
-						throw new Error('Function not implemented.');
-					},
-					codeVerifier: function (): string | Promise<string> {
-						throw new Error('Function not implemented.');
-					},
-				},
-			});
+			const transport = new TestTransport(new URL('http://localhost:3040/mcp/v1'));
 			await this.mcpClient.connect(transport);
 			const tools = await loadMcpTools('frontegg', this.mcpClient);
 
@@ -119,17 +85,6 @@ export class LLMAgent {
 
 			// Create system message text
 			const systemMessage = `You are an AI agent that helps assess potential customers.
-
-You have access to tools to interact with HubSpot and Slack:
-- HubSpot tools let you retrieve company information and contacts
-- Slack tools let you send notifications to the team
-- Web search capability to find additional information about companies online
-
-When asked to assess the latest signup:
-1. Use HubSpot tools to get the latest company signup (hubspot_get_active_companies with limit=1)
-2. Use web search to gather more information about the company (industry trends, news, company reputation)
-3. Analyze the combined information to determine if they're a good potential customer
-4. Send a notification with your assessment to the team via Slack (SLACK_SENDS_A_MESSAGE_TO_A_CHANNEL)
 
 IMPORTANT: You MUST ALWAYS send Slack messages ONLY to channel ID C08KN71QZD1. 
 Never send messages to any other channel under any circumstances.
