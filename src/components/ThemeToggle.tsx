@@ -14,19 +14,31 @@ export function ThemeToggle() {
   useEffect(() => {
     // Apply the theme immediately on mount
     const root = document.documentElement;
-    const isDark = theme === 'dark' || 
-      (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    root.classList.remove('light', 'dark');
-    root.classList.add(isDark ? 'dark' : 'light');
+    const isDark = 
+      theme === 'dark' || 
+      (theme === 'system' && prefersDark);
+
+    // Always remove both classes first
+    root.classList.remove('dark', 'light');
+    
+    // Then add the appropriate class
+    if (isDark) {
+      root.classList.add('dark');
+    }
+
+    // Store the selection
     localStorage.setItem('theme', theme);
 
     // Listen for system theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
       if (theme === 'system') {
-        root.classList.remove('light', 'dark');
-        root.classList.add(mediaQuery.matches ? 'dark' : 'light');
+        root.classList.remove('dark', 'light');
+        if (mediaQuery.matches) {
+          root.classList.add('dark');
+        }
       }
     };
 
@@ -39,7 +51,7 @@ export function ThemeToggle() {
   };
 
   return (
-    <div className="fixed top-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2">
+    <div className="fixed top-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 z-50">
       <div className="flex items-center gap-2">
         {['system', 'light', 'dark'].map((t) => (
           <div key={t} className="relative">
