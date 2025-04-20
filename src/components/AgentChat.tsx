@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessage, Message } from './ChatMessage';
@@ -31,8 +29,12 @@ export function AgentChat() {
     setMessages(prev => [...prev, newMessage]);
     setIsLoading(true);
 
+    // Construct API URL from environment variable
+    // Ensure VITE_ prefix is used for client-side env vars
+    const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/agent`;
+
     try {
-      const response = await fetch('/api/agent', {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: prompt }),

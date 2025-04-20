@@ -1,5 +1,4 @@
 import { ChatOpenAI, OpenAIEmbeddings } from '@langchain/openai';
-import { loadMcpTools } from '@langchain/mcp-adapters';
 import { logger } from '../utils/logger';
 import { AgentExecutor, createOpenAIFunctionsAgent } from 'langchain/agents';
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
@@ -58,16 +57,16 @@ export class LLMAgent {
 			logger.info('Initializing LLM Agent with MCP servers');
 
 			const fronteggAiAgentsClient = await FronteggAiAgentsClient.getInstance({
-				mcpServerUrl: process.env.MCP_SERVER_URL,
-				apiUrl: process.env.FRONTEGG_API_URL,
-				agentId: process.env.AGENT_ID,
-				clientId: process.env.CLIENT_ID,
-				clientSecret: process.env.CLIENT_SECRET,
+				mcpServerUrl: process.env.FRONTEGG_MCP_SERVER_URL !,
+				apiUrl: process.env.FRONTEGG_API_URL!,
+				agentId: process.env.AGENT_ID!,
+				clientId: process.env.CLIENT_ID!,
+				clientSecret: process.env.CLIENT_SECRET!,
 			});
 
 			const tools = await fronteggAiAgentsClient.getToolsAsLangchainTools(
-				process.env.TENANT_ID,
-				process.env.USER_ID,
+				process.env.TENANT_ID!,
+				process.env.USER_ID!,
 			);
 
 			// Log information about loaded tools
