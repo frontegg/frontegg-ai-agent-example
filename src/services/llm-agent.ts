@@ -6,6 +6,7 @@ import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts
 import { WebBrowser } from 'langchain/tools/webbrowser';
 import { Client } from '@modelcontextprotocol/sdk/client/index';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp';
+import { FronteggAiAgentsClient } from 'frontegg-ai-agents-sdk';
 
 // @ts-ignore
 class TestTransport extends StreamableHTTPClientTransport {
@@ -15,11 +16,11 @@ class TestTransport extends StreamableHTTPClientTransport {
 
 	async _commonHeaders() {
 		return {
-			'Authorization': `Bearer ${process.env.MCP_API_KEY}`,
+			Authorization: `Bearer ${process.env.MCP_API_KEY}`,
 			'tenant-id': process.env.TENANT_ID,
 			'agent-id': process.env.AGENT_ID,
 			'user-id': process.env.USER_ID,
-		}
+		};
 	}
 }
 
@@ -56,9 +57,18 @@ export class LLMAgent {
 		try {
 			logger.info('Initializing LLM Agent with MCP servers');
 
-			const transport = new TestTransport(new URL('http://localhost:3040/mcp/v1'));
-			await this.mcpClient.connect(transport);
-			const tools = await loadMcpTools('frontegg', this.mcpClient);
+			const fronteggAiAgentsClient = await FronteggAiAgentsClient.getInstance({
+				mcpServerUrl: 'http://localhost:3040/mcp/v1',
+				apiUrl: 'https://api.stg.frontegg.com',
+				agentId: process.env.AGENT_ID || 'test',
+				clientId: process.env.CLIENT_ID || 'd2213daf-1a0a-41cd-a87e-b2fbabe0fa60',
+				clientSecret: process.env.CLIENT_SECRET || '78de4366-4863-4053-9875-d5c9b59ca43b',
+			});
+
+			const tools = await fronteggAiAgentsClient.getToolsAsLangchainTools(
+				process.env.TENANT_ID || 'test',
+				process.env.USER_ID || 'omer@test.com',
+			);
 
 			// Log information about loaded tools
 			logger.info(`Loaded ${tools.length} tools from MCP servers`);
