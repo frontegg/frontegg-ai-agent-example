@@ -1,35 +1,3 @@
 {
-  "servers": {
-    "hubspot": {
-      "transport": "stdio",
-      "command": "docker",
-      "args": ["run", "-i", "--rm", "buryhuang/mcp-hubspot:latest", "--access-token", "${HUBSPOT_ACCESS_TOKEN}"],
-      "env": {
-        "PATH": "${PATH}",
-        "NODE_ENV": "${NODE_ENV}"
-      },
-      "restart": {
-        "enabled": true,
-        "maxAttempts": 3,
-        "delayMs": 2000
-      }
-    },
-    "slack": {
-      "transport": "stdio",
-      "command": "node",
-      "args": ["./node_modules/@modelcontextprotocol/server-slack/dist/index.js"],
-      "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
-        "SLACK_TEAM_ID": "${SLACK_TEAM_ID}",
-        "NODE_ENV": "${NODE_ENV}",
-        "MCP_TRANSPORT": "stdio",
-        "PATH": "${PATH}"
-      },
-      "restart": {
-        "enabled": true,
-        "maxAttempts": 3,
-        "delayMs": 2000
-      }
-    }
-  }
+
 } 
