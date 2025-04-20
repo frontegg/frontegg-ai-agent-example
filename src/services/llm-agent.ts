@@ -58,16 +58,16 @@ export class LLMAgent {
 			logger.info('Initializing LLM Agent with MCP servers');
 
 			const fronteggAiAgentsClient = await FronteggAiAgentsClient.getInstance({
-				mcpServerUrl: 'http://localhost:3040/mcp/v1',
-				apiUrl: 'https://api.stg.frontegg.com',
-				agentId: process.env.AGENT_ID || 'test',
-				clientId: process.env.CLIENT_ID || 'd2213daf-1a0a-41cd-a87e-b2fbabe0fa60',
-				clientSecret: process.env.CLIENT_SECRET || '78de4366-4863-4053-9875-d5c9b59ca43b',
+				mcpServerUrl: process.env.MCP_SERVER_URL,
+				apiUrl: process.env.FRONTEGG_API_URL,
+				agentId: process.env.AGENT_ID,
+				clientId: process.env.CLIENT_ID,
+				clientSecret: process.env.CLIENT_SECRET,
 			});
 
 			const tools = await fronteggAiAgentsClient.getToolsAsLangchainTools(
-				process.env.TENANT_ID || 'test',
-				process.env.USER_ID || 'omer@test.com',
+				process.env.TENANT_ID,
+				process.env.USER_ID,
 			);
 
 			// Log information about loaded tools
