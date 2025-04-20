@@ -14,6 +14,13 @@ export function AgentChat() {
   const [qualificationResult, setQualificationResult] = useState<QualificationResult | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Add initial welcome message on mount
+  React.useEffect(() => {
+    setMessages([
+      { role: 'assistant', content: "Hi there! I'm Jenny, your Customer Commitment Lifecycle agent. How can I help you track feature commitments today?" }
+    ]);
+  }, []); // Empty dependency array ensures this runs only once on mount
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };

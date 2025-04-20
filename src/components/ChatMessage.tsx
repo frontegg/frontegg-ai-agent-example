@@ -20,16 +20,24 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   return (
     <div className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 dark:bg-blue-600 flex items-center justify-center">
-        <span className="text-sm font-medium text-white">
-          {isUser ? 'U' : 'A'}
-        </span>
-      </div>
+      {isUser ? (
+        <div className="flex-shrink-0 w-auto h-8 rounded-full bg-indigo-500 flex items-center justify-center px-3 shadow-sm">
+          <span className="text-sm font-medium text-white">User</span>
+        </div>
+      ) : (
+        <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 shadow-sm">
+          <img 
+            src="/jenny-avatar.svg" 
+            alt="Jenny AI Assistant"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
       
       <div className={`flex-1 rounded-lg p-3 ${
         isUser 
-          ? 'bg-blue-500 text-white dark:bg-blue-600' 
-          : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+          ? 'bg-indigo-500 text-white shadow-sm' 
+          : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-blue-100 dark:border-gray-700'
       }`}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
@@ -37,7 +45,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             code({ className, children }) {
               const match = /language-(\w+)/.exec(className || '');
               return match ? (
-                <div className="rounded-lg overflow-hidden my-2 bg-gray-800">
+                <div className="rounded-lg overflow-hidden my-2 bg-gray-800 border border-gray-700">
                   <div className="flex items-center justify-between px-4 py-2 bg-gray-900">
                     <span className="text-xs text-gray-400">{match[1]}</span>
                   </div>
@@ -53,8 +61,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
               ) : (
                 <code className={`px-1.5 py-0.5 rounded text-sm ${
                   isUser 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 dark:bg-gray-600'
+                    ? 'bg-indigo-400/20 text-white' 
+                    : 'bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-blue-300'
                 }`}>
                   {children}
                 </code>
@@ -79,7 +87,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   target="_blank" 
                   rel="noopener noreferrer"
                   className={`underline ${
-                    isUser ? 'text-white' : 'text-blue-500 dark:text-blue-400'
+                    isUser ? 'text-indigo-100 hover:text-white' : 'text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300'
                   }`}
                 >
                   {children}
