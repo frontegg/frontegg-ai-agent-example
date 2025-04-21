@@ -34,17 +34,6 @@ FRONTEGG_CLIENT_ID=your_frontegg_client_id
 FRONTEGG_CLIENT_SECRET=your_frontegg_client_secret
 FRONTEGG_APP_URL=your_frontegg_app_url
 FRONTEGG_BASE_URL=your_frontegg_base_url
-FRONTEGG_AFTER_LOGIN_REDIRECT=your_after_login_url
-
-# API Base URLs
-REACT_APP_API_BASE_URL=your_api_base_url
-EXPRESS_PORT=3001
-
-# Tool-specific Configuration (Optional)
-JIRA_API_TOKEN=your_jira_api_token
-SLACK_BOT_TOKEN=your_slack_bot_token
-HUBSPOT_API_KEY=your_hubspot_api_key
-GOOGLE_CALENDAR_CREDENTIALS=your_google_calendar_credentials
 ```
 
 ## Installation
