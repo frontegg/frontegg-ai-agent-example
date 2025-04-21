@@ -5,10 +5,11 @@ import './styles/globals.css'; // Assuming global styles are here
 import { FronteggProvider } from '@frontegg/react';
 
 const contextOptions = {
-  baseUrl: process.env.FRONTEGG_BASE_URL!,
-  clientId: process.env.FRONTEGG_CLIENT_ID!,
-  appId: process.env.FRONTEGG_AGENT_ID!
+	baseUrl: import.meta.env.VITE_FRONTEGG_BASE_URL!,
+	clientId: import.meta.env.VITE_FRONTEGG_CLIENT_ID!,
+	appId: import.meta.env.VITE_FRONTEGG_AGENT_ID!
 };
+
 
 const authOptions = {
   keepSessionAlive: true
