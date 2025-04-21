@@ -5,7 +5,7 @@ import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts
 import { WebBrowser } from 'langchain/tools/webbrowser';
 import { Client } from '@modelcontextprotocol/sdk/client/index';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp';
-import { FronteggAiAgentsClient } from 'frontegg-ai-agents-sdk';
+import { Environment, FronteggAiAgentsClient } from '@frontegg/ai-agents-sdk';
 
 // @ts-ignore
 class TestTransport extends StreamableHTTPClientTransport {
@@ -57,17 +57,15 @@ export class LLMAgent {
 			logger.info('Initializing LLM Agent with MCP servers');
 
 			const fronteggAiAgentsClient = await FronteggAiAgentsClient.getInstance({
-				mcpServerUrl: process.env.FRONTEGG_MCP_SERVER_URL !,
-				apiUrl: process.env.FRONTEGG_API_URL!,
-				agentId: process.env.AGENT_ID!,
-				clientId: process.env.CLIENT_ID!,
-				clientSecret: process.env.CLIENT_SECRET!,
+				agentId: process.env.FRONTEGG_AGENT_ID!,
+				clientId: process.env.FRONTEGG_CLIENT_ID!,
+				clientSecret: process.env.FRONTEGG_CLIENT_SECRET!,
+				environment: Environment.EU
 			});
 
-			const tools = await fronteggAiAgentsClient.getToolsAsLangchainTools(
-				process.env.TENANT_ID!,
-				process.env.USER_ID!,
-			);
+			const tools = await fronteggAiAgentsClient.getToolsAsLangchainTools();
+
+			fronteggAiAgentsClient.setContext(process.env.TENANT_ID!, process.env.USER_ID!);
 
 			// Log information about loaded tools
 			logger.info(`Loaded ${tools.length} tools from MCP servers`);

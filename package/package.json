@@ -1,0 +1,39 @@
+{
+  "name": "frontegg-ai-agents-sdk",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "build:watch": "rm -rf dist && tsc --watch",
+    "lint": "eslint --ignore-path .eslintignore --ext .js,.ts .",
+    "format": "prettier --write \"**/*.+(js|ts|json)\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frontegg/frontegg-ai-agents-sdk.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/frontegg/frontegg-ai-agents-sdk/issues"
+  },
+  "homepage": "https://github.com/frontegg/frontegg-ai-agents-sdk#readme",
+  "description": "",
+  "dependencies": {
+    "@langchain/mcp-adapters": "^0.4.2",
+    "@modelcontextprotocol/sdk": "1.10.1",
+    "axios": "^1.7.9",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "18.16.9",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "typescript": "^5.7.2"
+  }
+}
