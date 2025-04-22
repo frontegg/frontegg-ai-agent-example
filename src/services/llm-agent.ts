@@ -31,6 +31,8 @@ export class LLMAgent {
 	private model: ChatOpenAI;
 	private mcpClient: Client;
 	private agent: AgentExecutor | null = null;
+	private conversationHistory: { role: string; content: string }[] = [];
+	private systemMessage: string;
 
 	constructor() {
 		// Create new model instance with GPT-4o
@@ -45,6 +47,34 @@ export class LLMAgent {
 			name: 'mcp-client',
 			version: '1.0',
 		});
+
+		// Store system message for reuse
+		this.systemMessage = `You are Jenny, an autonomous B2B agent that helps sales and customer success teams fulfill their product feature commitments.
+You work on behalf of authenticated users at B2B companies and have access to Slack, Jira, HubSpot, and Google Calendar.
+
+Your mission is to ensure that every product feature commitment tied to a sales deal or CS retention promise is captured, tracked, and followed up on — transparently and on time.
+
+Your Core Responsibilities:
+	•	Capture commitments shared by users in natural language (e.g., "We promised Feature A in 3 weeks for Acme").
+	•	Log actionables in Jira with relevant metadata (feature name, priority, ETA, owner).
+	•	Link commitments to CRM context in HubSpot (deal, customer, amount).
+	•	Schedule syncs with engineering on Google Calendar to ensure delivery.
+	•	Notify stakeholders in Slack channels (e.g., #sales-ops) with updates.
+
+Key Attributes:
+	•	You must maintain context across interactions.
+	•	Always confirm actions taken and ask if anything else is needed.
+	•	Communicate clearly, professionally, and with a helpful tone.
+	•	If an integration isn't authorized yet, explain how the user can connect it via Frontegg's auth flow.
+
+Examples of behavior:
+	•	If a user says "We need Feature X by May 3 for $100K deal," you:
+	•	Add it as a task in Jira
+	•	Link it to the HubSpot deal
+	•	Create weekly syncs on Calendar
+	•	Notify the team in Slack
+
+Only use integrations the user has authorized. Be transparent about actions you take.`;
 
 		logger.info('Using GPT-4o model with web search capabilities');
 	}
@@ -90,63 +120,8 @@ export class LLMAgent {
 
 			logger.info('Added web search capability to agent tools');
 
-			// Create system message text
-			const systemMessage = `You are Jenny, an autonomous B2B agent that helps sales and customer success teams fulfill their product feature commitments.
-You work on behalf of authenticated users at B2B companies and have access to Slack, Jira, HubSpot, and Google Calendar.
-
-Your mission is to ensure that every product feature commitment tied to a sales deal or CS retention promise is captured, tracked, and followed up on — transparently and on time.
-
-Your Core Responsibilities:
-	•	Capture commitments shared by users in natural language (e.g., “We promised Feature A in 3 weeks for Acme”).
-	•	Log actionables in Jira with relevant metadata (feature name, priority, ETA, owner).
-	•	Link commitments to CRM context in HubSpot (deal, customer, amount).
-	•	Schedule syncs with engineering on Google Calendar to ensure delivery.
-	•	Notify stakeholders in Slack channels (e.g., #sales-ops) with updates.
-
-Key Attributes:
-	•	You must maintain context across interactions.
-	•	Always confirm actions taken and ask if anything else is needed.
-	•	Communicate clearly, professionally, and with a helpful tone.
-	•	If an integration isn’t authorized yet, explain how the user can connect it via Frontegg’s auth flow.
-
-Examples of behavior:
-	•	If a user says “We need Feature X by May 3 for $100K deal,” you:
-	•	Add it as a task in Jira
-	•	Link it to the HubSpot deal
-	•	Create weekly syncs on Calendar
-	•	Notify the team in Slack
-
-Only use integrations the user has authorized. Be transparent about actions you take.`;
-
-			// Create a prompt with the required agent_scratchpad
-			const prompt = ChatPromptTemplate.fromMessages([
-				['system', systemMessage],
-				['human', '{input}'],
-				new MessagesPlaceholder('agent_scratchpad'),
-			]);
-
-			try {
-				// Create OpenAI functions agent with type assertions to bypass type incompatibilities
-				const agent = await createOpenAIFunctionsAgent({
-					llm: this.model as any,
-					tools: tools as any,
-					prompt: prompt as any,
-				});
-
-				// Create agent executor with type assertions
-				this.agent = new AgentExecutor({
-					agent: agent as any,
-					tools: tools as any,
-					verbose: true,
-				});
-
-				logger.info('LangChain agent created successfully');
-				return true;
-			} catch (agentError) {
-				logger.error(`Error creating agent: ${(agentError as Error).message}`);
-				logger.debug(`Agent creation stack trace: ${(agentError as Error).stack}`);
-				throw agentError;
-			}
+			await this.createAgent(tools);
+			return true;
 		} catch (error) {
 			logger.error(`Failed to initialize LLM Agent: ${(error as Error).message}`);
 			if (error instanceof Error && error.stack) {
@@ -157,9 +132,45 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	}
 
 	/**
+	 * Create or recreate the agent with updated conversation history
+	 */
+	private async createAgent(tools: any[]) {
+		try {
+			// Create messages array for the prompt
+			const messages = [
+				{ role: 'system', content: this.systemMessage },
+				...this.conversationHistory,
+				new MessagesPlaceholder('agent_scratchpad'),
+			];
+
+			// Create prompt with conversation history
+			const prompt = ChatPromptTemplate.fromMessages(messages);
+
+			// Create OpenAI functions agent with type assertions
+			const agent = await createOpenAIFunctionsAgent({
+				llm: this.model as any,
+				tools: tools as any,
+				prompt: prompt as any,
+			});
+
+			// Create agent executor
+			this.agent = new AgentExecutor({
+				agent: agent as any,
+				tools: tools as any,
+				verbose: true,
+			});
+
+			logger.info('LangChain agent created/updated successfully');
+		} catch (error) {
+			logger.error(`Error creating/updating agent: ${(error as Error).message}`);
+			throw error;
+		}
+	}
+
+	/**
 	 * Process a request with the agent
 	 */
-	public async processRequest(request: string): Promise<any> {
+	public async processRequest(request: string, history?: { role: string; content: string }[]): Promise<any> {
 		try {
 			logger.info(`Processing request: ${request}`);
 
@@ -167,10 +178,25 @@ Only use integrations the user has authorized. Be transparent about actions you 
 				throw new Error('Agent not initialized. Call initialize() first.');
 			}
 
+			// Update conversation history if provided
+			if (history) {
+				this.conversationHistory = history;
+			}
+
+			// Add the new user message to history
+			this.conversationHistory.push({ role: 'human', content: request });
+
+			// Recreate the agent with updated history
+			const tools = this.agent.tools;
+			await this.createAgent(tools);
+
 			// Invoke the agent with the request
 			const result = await this.agent.invoke({
 				input: request,
 			});
+
+			// Add the assistant's response to history
+			this.conversationHistory.push({ role: 'assistant', content: result.output });
 
 			logger.info('Agent completed request');
 			return result;
