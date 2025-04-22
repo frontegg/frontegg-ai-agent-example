@@ -33,6 +33,7 @@ export class LLMAgent {
 	private agent: AgentExecutor | null = null;
 	private conversationHistory: { role: string; content: string }[] = [];
 	private systemMessage: string;
+	private fronteggAiAgentsClient: FronteggAiAgentsClient | undefined;
 
 	constructor() {
 		// Create new model instance with GPT-4o
@@ -86,17 +87,17 @@ Only use integrations the user has authorized. Be transparent about actions you 
 		try {
 			logger.info('Initializing LLM Agent with MCP servers');
 
-			const fronteggAiAgentsClient = await FronteggAiAgentsClient.getInstance({
+			this.fronteggAiAgentsClient = await FronteggAiAgentsClient.getInstance({
 				agentId: process.env.FRONTEGG_AGENT_ID!,
 				clientId: process.env.FRONTEGG_CLIENT_ID!,
 				clientSecret: process.env.FRONTEGG_CLIENT_SECRET!,
 				environment: Environment.EU,
 			});
-			await fronteggAiAgentsClient.setUserContextByJWT(userJwt);
+			await this.fronteggAiAgentsClient.setUserContextByJWT(userJwt);
 
-			const tools = await fronteggAiAgentsClient.getToolsAsLangchainTools();
+			const tools = await this.fronteggAiAgentsClient.getToolsAsLangchainTools();
 
-			fronteggAiAgentsClient.setContext(process.env.TENANT_ID!, process.env.USER_ID!);
+			this.fronteggAiAgentsClient.setContext(process.env.TENANT_ID!, process.env.USER_ID!);
 
 			// Log information about loaded tools
 			logger.info(`Loaded ${tools.length} tools from MCP servers`);
@@ -121,7 +122,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 
 			logger.info('Added web search capability to agent tools');
 
-			await this.createAgent(tools, fronteggAiAgentsClient);
+			await this.createAgent(tools);
 			return true;
 		} catch (error) {
 			logger.error(`Failed to initialize LLM Agent: ${(error as Error).message}`);
@@ -135,11 +136,16 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	/**
 	 * Create or recreate the agent with updated conversation history
 	 */
-	private async createAgent(tools: any[], fronteggAiAgentsClient: FronteggAiAgentsClient) {
+	private async createAgent(tools: any[]) {
 		try {
 			// Create messages array for the prompt
 			const messages = [
-				{ role: 'system', content: fronteggAiAgentsClient.addUserContextToSystemPrompt(this.systemMessage) },
+				{
+					role: 'system',
+					content: this.fronteggAiAgentsClient
+						? this.fronteggAiAgentsClient.addUserContextToSystemPrompt(this.systemMessage)
+						: this.systemMessage,
+				},
 				...this.conversationHistory,
 				new MessagesPlaceholder('agent_scratchpad'),
 			];
@@ -189,7 +195,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 
 			// Recreate the agent with updated history
 			const tools = this.agent.tools;
-			await this.createAgent(tools, fronteggAiAgentsClient);
+			await this.createAgent(tools);
 
 			// Invoke the agent with the request
 			const result = await this.agent.invoke({
