@@ -82,7 +82,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	/**
 	 * Initialize the agent with MCP servers
 	 */
-	public async initialize(): Promise<boolean> {
+	public async initialize(userJwt: string): Promise<boolean> {
 		try {
 			logger.info('Initializing LLM Agent with MCP servers');
 
@@ -90,8 +90,9 @@ Only use integrations the user has authorized. Be transparent about actions you 
 				agentId: process.env.FRONTEGG_AGENT_ID!,
 				clientId: process.env.FRONTEGG_CLIENT_ID!,
 				clientSecret: process.env.FRONTEGG_CLIENT_SECRET!,
-				environment: Environment.EU
+				environment: Environment.EU,
 			});
+			await fronteggAiAgentsClient.setUserContextByJWT(userJwt);
 
 			const tools = await fronteggAiAgentsClient.getToolsAsLangchainTools();
 
@@ -120,7 +121,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 
 			logger.info('Added web search capability to agent tools');
 
-			await this.createAgent(tools);
+			await this.createAgent(tools, fronteggAiAgentsClient);
 			return true;
 		} catch (error) {
 			logger.error(`Failed to initialize LLM Agent: ${(error as Error).message}`);
@@ -134,11 +135,11 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	/**
 	 * Create or recreate the agent with updated conversation history
 	 */
-	private async createAgent(tools: any[]) {
+	private async createAgent(tools: any[], fronteggAiAgentsClient: FronteggAiAgentsClient) {
 		try {
 			// Create messages array for the prompt
 			const messages = [
-				{ role: 'system', content: this.systemMessage },
+				{ role: 'system', content: fronteggAiAgentsClient.addUserContextToSystemPrompt(this.systemMessage) },
 				...this.conversationHistory,
 				new MessagesPlaceholder('agent_scratchpad'),
 			];
@@ -188,7 +189,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 
 			// Recreate the agent with updated history
 			const tools = this.agent.tools;
-			await this.createAgent(tools);
+			await this.createAgent(tools, fronteggAiAgentsClient);
 
 			// Invoke the agent with the request
 			const result = await this.agent.invoke({
