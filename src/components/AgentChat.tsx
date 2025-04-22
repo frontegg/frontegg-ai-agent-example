@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessage, Message } from './ChatMessage';
 import { PromptInput } from './PromptInput';
 import { QualificationCard } from './QualificationCard';
+import { ContextHolder } from '@frontegg/react';
 
 interface QualificationResult {
   output: string;
@@ -39,11 +40,11 @@ export function AgentChat() {
     // Construct API URL from environment variable
     // Ensure VITE_ prefix is used for client-side env vars
     const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/agent`;
-
+    const token = ContextHolder.default().getAccessToken();
     try {
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ message: prompt }),
       });
 

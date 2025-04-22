@@ -52,7 +52,7 @@ export class LLMAgent {
 	/**
 	 * Initialize the agent with MCP servers
 	 */
-	public async initialize(): Promise<boolean> {
+	public async initialize(userJwt: string): Promise<boolean> {
 		try {
 			logger.info('Initializing LLM Agent with MCP servers');
 
@@ -60,8 +60,9 @@ export class LLMAgent {
 				agentId: process.env.FRONTEGG_AGENT_ID!,
 				clientId: process.env.FRONTEGG_CLIENT_ID!,
 				clientSecret: process.env.FRONTEGG_CLIENT_SECRET!,
-				environment: Environment.EU
+				environment: Environment.EU,
 			});
+			await fronteggAiAgentsClient.setUserContextByJWT(userJwt);
 
 			const tools = await fronteggAiAgentsClient.getToolsAsLangchainTools();
 
@@ -120,7 +121,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 
 			// Create a prompt with the required agent_scratchpad
 			const prompt = ChatPromptTemplate.fromMessages([
-				['system', systemMessage],
+				['system', fronteggAiAgentsClient.addUserContextToSystemPrompt(systemMessage)],
 				['human', '{input}'],
 				new MessagesPlaceholder('agent_scratchpad'),
 			]);
