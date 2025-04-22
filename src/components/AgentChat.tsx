@@ -83,8 +83,8 @@ export function AgentChat() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto space-y-4 pt-6">
-        <div className="px-4">
+      <div className="flex-1 overflow-y-auto pt-6">
+        <div className="px-4 space-y-6">
           {messages.map((message, index) => (
             <ChatMessage key={index} message={message} />
           ))}

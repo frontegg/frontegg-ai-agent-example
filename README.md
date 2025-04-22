@@ -30,11 +30,13 @@ Create a `.env` file in the root directory with the following variables:
 OPENAI_API_KEY=your_openai_api_key
 
 # Frontegg Configuration
-FRONTEGG_CLIENT_ID=your_frontegg_client_id
+VITE_FRONTEGG_CLIENT_ID=your_frontegg_client_id
+VITE_FRONTEGG_BASE_URL=your_frontegg_base_url
+VITE_FRONTEGG_APP_URL=your_frontegg_app_url
 FRONTEGG_CLIENT_SECRET=your_frontegg_client_secret
-FRONTEGG_APP_URL=your_frontegg_app_url
-FRONTEGG_BASE_URL=your_frontegg_base_url
 ```
+
+Note: For the frontend React application to access environment variables, they must be prefixed with `VITE_`. The frontend can access these variables using `import.meta.env.VITE_*`.
 
 ## Installation
 
