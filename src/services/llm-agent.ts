@@ -53,9 +53,9 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	}
 
 	/**
-	 * Initialize the agent with MCP servers
+	 * Initialize the frontegg ai agents client
 	 */
-	public async initialize(userJwt: string): Promise<boolean> {
+	public async initializeFronteggAIAgentsClient(): Promise<boolean> {
 		try {
 			this.fronteggAiAgentsClient = await FronteggAiAgentsClient.getInstance({
 				agentId: process.env.FRONTEGG_AGENT_ID!,
@@ -63,10 +63,6 @@ Only use integrations the user has authorized. Be transparent about actions you 
 				clientSecret: process.env.FRONTEGG_CLIENT_SECRET!,
 				environment: Environment.EU,
 			});
-
-			await this.fronteggAiAgentsClient.setUserContextByJWT(userJwt);
-			const tools = await this.fronteggAiAgentsClient.getToolsAsLangchainTools();
-			await this.createAgent(tools);
 			return true;
 
 		} catch (error) {
@@ -81,7 +77,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	/**
 	 * Create or recreate the agent with updated conversation history
 	 */
-	private async createAgent(tools: any[]) {
+	private async 	createAgent(tools: any[]) {
 		try {
 			// Create messages array for the prompt
 			const messages = [
@@ -99,7 +95,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 			const prompt = ChatPromptTemplate.fromMessages(messages);
 
 			// Create OpenAI functions agent with type assertions
-			const agent = await createOpenAIFunctionsAgent({
+			const openAIFunctionsAgent = await createOpenAIFunctionsAgent({
 				llm: this.model as any,
 				tools: tools as any,
 				prompt: prompt as any,
@@ -107,7 +103,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 
 			// Create agent executor
 			this.agent = new AgentExecutor({
-				agent: agent as any,
+				agent: openAIFunctionsAgent as any,
 				tools: tools as any,
 				verbose: true,
 			});
@@ -120,29 +116,14 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	}
 
 	/**
-	 * Set user context using JWT
-	 */
-	public async setUserContext(userJwt: string): Promise<void> {
-		try {
-			if (!this.fronteggAiAgentsClient) {
-				throw new Error('Frontegg client not initialized');
-			}
-			await this.fronteggAiAgentsClient.setUserContextByJWT(userJwt);
-		} catch (error) {
-			logger.error(`Failed to set user context: ${(error as Error).message}`);
-			throw error;
-		}
-	}
-
-	/**
 	 * Process a request with the agent
 	 */
-	public async processRequest(request: string, history?: { role: string; content: string }[]): Promise<any> {
+	public async processRequest(request: string, userJwt: string, history?: { role: string; content: string }[]): Promise<any> {
 		try {
 			logger.info(`Processing request: ${request}`);
 
-			if (!this.agent) {
-				throw new Error('Agent not initialized. Call initialize() first.');
+			if (!this.fronteggAiAgentsClient) {
+				throw new Error('Frontegg client not initialized');
 			}
 
 			// Update conversation history if provided
@@ -153,17 +134,18 @@ Only use integrations the user has authorized. Be transparent about actions you 
 			// Add the new user message to history
 			this.conversationHistory.push({ role: 'human', content: request });
 
-			// Recreate the agent with updated history
-			const tools = this.agent.tools;
+			// Recreate the agent with updated user context,tools and history
+			await this.fronteggAiAgentsClient.setUserContextByJWT(userJwt);
+			const tools = await this.fronteggAiAgentsClient.getToolsAsLangchainTools();
 			await this.createAgent(tools);
 
 			// Invoke the agent with the request
-			const result = await this.agent.invoke({
+			const result = await this.agent?.invoke({
 				input: request,
 			});
 
 			// Add the assistant's response to history
-			this.conversationHistory.push({ role: 'assistant', content: result.output });
+			this.conversationHistory.push({ role: 'assistant', content: result?.output || '' });
 
 			logger.info('Agent completed request');
 			return result;

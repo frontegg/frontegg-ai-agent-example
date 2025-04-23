@@ -10,8 +10,7 @@ FronteggContext.init({
 	FRONTEGG_CLIENT_ID: process.env.FRONTEGG_CLIENT_ID!,
 	FRONTEGG_API_KEY: process.env.FRONTEGG_CLIENT_SECRET!,
 });
-console.log('FRONTEGG_CLIENT_ID: ', process.env.FRONTEGG_CLIENT_ID);
-console.log('FRONTEGG_API_KEY: ', process.env.FRONTEGG_CLIENT_SECRET);
+
 // Use SERVER_PORT from env, default to 3001 if not set
 const port = process.env.SERVER_PORT || 3001;
 
@@ -26,10 +25,8 @@ let agent: LLMAgent | null = null;
 let isInitializing = false;
 let initializationError: Error | null = null;
 
-async function getAgentInstance(userJwt: string) {
+async function getAgentInstance() {
 	if (agent) {
-		// Set context for existing agent instance using the new JWT
-		await agent.setUserContext(userJwt);
 		return agent;
 	}
 	if (isInitializing) {
@@ -54,7 +51,7 @@ async function getAgentInstance(userJwt: string) {
 	logger.info('Initializing agent instance...');
 	try {
 		const newAgent = createLLMAgent();
-		await newAgent.initialize(userJwt);
+		await newAgent.initializeFronteggAIAgentsClient();
 		agent = newAgent; // Assign only after successful initialization
 		logger.info('Agent instance initialized successfully.');
 		isInitializing = false;
@@ -76,13 +73,11 @@ app.post('/api/agent', async (req: Request, res: Response) => {
 			return res.status(400).json({ error: 'Message is required and must be a string' });
 		}
 		const userJwt = req.headers['authorization'] as string;
-		logger.info('JWT: ' + userJwt, userJwt);
-		logger.info(`Received request for /api/agent with message: "${message}"`);
 
-		const agentInstance = await getAgentInstance(userJwt); // Get or initialize the agent
+		const agentInstance = await getAgentInstance(); 
 
 		logger.info('Processing request with agent...');
-		const result = await agentInstance.processRequest(message);
+		const result = await agentInstance.processRequest(message,userJwt);
 		logger.info('Agent processing complete.');
 
 		// Extract the text content from the response
