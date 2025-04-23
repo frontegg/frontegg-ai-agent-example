@@ -14,8 +14,6 @@
     "dev:all": "concurrently \"npm:dev:server\" \"npm:dev:fe\"",
     "test": "jest",
     "test:simple": "ts-node src/test.ts",
-    "llm-agent": "tsx src/scripts/run-llm-agent.ts",
-    "llm-agent:build": "node dist/scripts/run-llm-agent.js",
     "lint": "eslint src --ext .ts",
     "postinstall": "patch-package"
   },
