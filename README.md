@@ -1,156 +1,82 @@
 # Commitment Lifecycle Agent
 
-A Frontegg AI agent that seamlessly connects to Jira, Slack, HubSpot, and Google Calendar to manage and track commitments throughout their lifecycle. Built with React, Express, LangChain, and OpenAI, leveraging Frontegg's AI agents platform for automated authentication and authorization across all integrated tools.
+This project demonstrates how to build AI agents using the Frontegg AI framework SDK. It serves as a reference implementation for developers looking to create authenticated AI agents with third-party integrations and user context management.
+
+## Overview
+
+The project showcases:
+- Integration with Frontegg AI framework SDK for authentication and user management
+- Building AI agents with user and identity context
+- Connecting to third-party applications (Slack, Jira, HubSpot, Google Calendar)
+- React-based frontend with real-time agent interactions
+- Express.js backend for agent orchestration
 
 ## Features
 
-- 🤖 AI-powered commitment tracking and management
-- 🔄 Real-time chat interface
-- 🔐 Seamless authentication via Frontegg
-- 📊 Jira integration for task tracking
-- 💬 Slack notifications for commitment updates
-- 📈 HubSpot integration for customer context
-- 📅 Google Calendar integration for scheduling
-- 🌙 Dark mode support
-- 📱 Responsive design
+- **Authentication & Authorization**: Leverages Frontegg for secure user authentication
+- **User Context**: Demonstrates how to maintain user context in AI agent interactions
+- **Third-Party Integrations**: Shows integration patterns with various business tools
 
-## Prerequisites
+## Tech Stack
 
-- Node.js 18+ and npm
-- OpenAI API key
-- Frontegg account and workspace
-- Access to required tools (Jira, Slack, HubSpot, Google Calendar)
+- Frontend: React, Vite, TailwindCSS
+- Backend: Express.js, TypeScript
+- AI Framework: Frontegg AI Agents SDK
+- Authentication: Frontegg
+- Integrations: Slack, Jira, HubSpot, Google Calendar
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   Fill in your Frontegg credentials and other API keys
+
+4. Start the development server:
+   ```bash
+   npm run dev:all
+   ```
 
 ## Environment Variables
 
-Create a `.env` file in the root directory with the following variables:
+Required environment variables:
+- `FRONTEGG_CLIENT_ID`: Your Frontegg client ID
+- `FRONTEGG_CLIENT_SECRET`: Your Frontegg client secret
+- `OPENAI_API_KEY`: OpenAI API key for the agent
+- Other integration-specific keys as needed
 
-```env
-# OpenAI Configuration
-OPENAI_API_KEY=your_openai_api_key
+## Development Scripts
 
-# Frontegg Configuration
-VITE_FRONTEGG_CLIENT_ID=your_frontegg_client_id
-VITE_FRONTEGG_BASE_URL=your_frontegg_base_url
-VITE_FRONTEGG_APP_URL=your_frontegg_app_url
-FRONTEGG_CLIENT_SECRET=your_frontegg_client_secret
-```
-
-Note: For the frontend React application to access environment variables, they must be prefixed with `VITE_`. The frontend can access these variables using `import.meta.env.VITE_*`.
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/commitment-lifecycle-agent.git
-cd commitment-lifecycle-agent
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Configure your Frontegg workspace:
-   - Set up your Frontegg account at https://portal.frontegg.com
-   - Create a new agent
-   - Configure the integrated tools (Jira, Slack, HubSpot, Google Calendar)
-   - Copy your environment client ID and secret to the `.env` file
-
-## Development
-
-You can start both the frontend and backend servers with a single command:
-```bash
-npm run dev:all
-```
-
-Or run them separately:
-
-1. Start the Express backend server:
-```bash
-npm run server
-```
-
-2. In a separate terminal, start the React development server:
-```bash
-npm run start
-```
-
-The frontend application will be available at `http://localhost:3000` and the backend API at `http://localhost:3001`.
-
-## Building for Production
-
-1. Build the React application:
-```bash
-npm run build
-```
-
-2. Start the production server:
-```bash
-npm run start:prod
-```
+- `npm run dev:all` - Start both frontend and backend in development mode
+- `npm run dev:fe` - Start frontend only
+- `npm run dev:server` - Start backend only
+- `npm run build:fe` - Build frontend
+- `npm test` - Run tests
+- `npm run lint` - Run ESLint
 
 ## Project Structure
 
 ```
-├── client/                # React frontend
-│   ├── src/
-│   │   ├── components/   # React components
-│   │   │   ├── AgentChat.tsx    # Main chat interface
-│   │   │   ├── ChatMessage.tsx  # Individual message component
-│   │   │   ├── PromptInput.tsx  # Message input component
-│   │   │   └── CommitmentCard.tsx  # Commitment tracking display
-│   │   ├── services/    # Frontend services
-│   │   ├── utils/      # Utility functions
-│   │   └── App.tsx    # Root React component
-├── server/              # Express backend
-│   ├── routes/         # API routes
-│   │   ├── agent.ts    # Agent endpoints
-│   │   ├── jira.ts     # Jira endpoints
-│   │   ├── slack.ts    # Slack endpoints
-│   │   ├── hubspot.ts  # HubSpot endpoints
-│   │   └── calendar.ts # Google Calendar endpoints
-│   ├── services/       # Business logic
-│   │   └── llm-agent.ts # LLM agent implementation
-│   ├── utils/          # Utility functions
-│   └── server.ts       # Express app entry point
-└── package.json
+├── src/
+│   ├── components/    # React components
+│   ├── services/     # Agent and integration services
+│   ├── utils/        # Utility functions
+│   ├── server.ts     # Express backend
+│   └── main.tsx      # Frontend entry
+├── public/           # Static assets
+└── package.json      # Project configuration
 ```
-
-## Features
-
-### Chat Interface
-- Real-time message updates
-- Markdown support with syntax highlighting
-- Code block formatting
-- Loading indicators
-- Dark mode support
-
-### Agent Capabilities
-- Commitment lifecycle tracking
-- Automated tool authentication via Frontegg
-- Jira task creation and management
-- Slack notifications for updates
-- HubSpot customer context integration
-- Google Calendar event scheduling
-- Source tracking and citation
-- Commitment status monitoring
-
-### Authentication & Authorization
-- Single sign-on through Frontegg
-- Automated OAuth flows for all tools
-- Secure token management
-- Role-based access control
-- Audit logging
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome! Please read our contributing guidelines before submitting pull requests.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+MIT License - see LICENSE file for details 

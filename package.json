@@ -1,7 +1,7 @@
 {
   "name": "commitment-lifecycle-agent",
   "version": "1.0.0",
-  "description": "An autonomous B2B agent that helps sales and customer success teams track and fulfill product feature commitments by integrating with Slack, Jira, HubSpot, and Google Calendar",
+  "description": "A demonstration project showcasing how to build AI agents using Frontegg AI framework SDK for authentication, third-party integrations, and user context management. Features a B2B agent that manages product commitments through Slack, Jira, HubSpot, and Google Calendar integrations.",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
