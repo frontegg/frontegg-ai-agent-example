@@ -1,8 +1,7 @@
-import { ChatOpenAI, OpenAIEmbeddings } from '@langchain/openai';
+import { ChatOpenAI } from '@langchain/openai';
 import { logger } from '../utils/logger';
 import { AgentExecutor, createOpenAIFunctionsAgent } from 'langchain/agents';
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
-import { WebBrowser } from 'langchain/tools/webbrowser';
 import { Environment, FronteggAiAgentsClient } from '@frontegg/ai-agents-sdk';
 
 /**
