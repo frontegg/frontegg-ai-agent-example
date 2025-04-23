@@ -97,8 +97,6 @@ Only use integrations the user has authorized. Be transparent about actions you 
 
 			const tools = await this.fronteggAiAgentsClient.getToolsAsLangchainTools();
 
-			this.fronteggAiAgentsClient.setContext(process.env.TENANT_ID!, process.env.USER_ID!);
-
 			// Log information about loaded tools
 			logger.info(`Loaded ${tools.length} tools from MCP servers`);
 
