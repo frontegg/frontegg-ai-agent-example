@@ -3,25 +3,7 @@ import { logger } from '../utils/logger';
 import { AgentExecutor, createOpenAIFunctionsAgent } from 'langchain/agents';
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
 import { WebBrowser } from 'langchain/tools/webbrowser';
-import { Client } from '@modelcontextprotocol/sdk/client/index';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp';
 import { Environment, FronteggAiAgentsClient } from '@frontegg/ai-agents-sdk';
-
-// @ts-ignore
-class TestTransport extends StreamableHTTPClientTransport {
-	constructor(url: URL) {
-		super(url);
-	}
-
-	async _commonHeaders() {
-		return {
-			Authorization: `Bearer ${process.env.MCP_API_KEY}`,
-			'tenant-id': process.env.TENANT_ID,
-			'agent-id': process.env.AGENT_ID,
-			'user-id': process.env.USER_ID,
-		};
-	}
-}
 
 /**
  * LLM Agent that uses LangChain and MCP Adapters
@@ -29,7 +11,6 @@ class TestTransport extends StreamableHTTPClientTransport {
  */
 export class LLMAgent {
 	private model: ChatOpenAI;
-	private mcpClient: Client;
 	private agent: AgentExecutor | null = null;
 	private conversationHistory: { role: string; content: string }[] = [];
 	private systemMessage: string;
@@ -41,12 +22,6 @@ export class LLMAgent {
 			modelName: 'gpt-4o',
 			temperature: 0.7,
 			openAIApiKey: process.env.OPENAI_API_KEY,
-		});
-
-		// Initialize client from config file
-		this.mcpClient = new Client({
-			name: 'mcp-client',
-			version: '1.0',
 		});
 
 		// Store system message for reuse
@@ -76,8 +51,6 @@ Examples of behavior:
 	•	Notify the team in Slack
 
 Only use integrations the user has authorized. Be transparent about actions you take.`;
-
-		logger.info('Using GPT-4o model with web search capabilities');
 	}
 
 	/**
@@ -85,43 +58,18 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	 */
 	public async initialize(userJwt: string): Promise<boolean> {
 		try {
-			logger.info('Initializing LLM Agent with MCP servers');
-
 			this.fronteggAiAgentsClient = await FronteggAiAgentsClient.getInstance({
 				agentId: process.env.FRONTEGG_AGENT_ID!,
 				clientId: process.env.FRONTEGG_CLIENT_ID!,
 				clientSecret: process.env.FRONTEGG_CLIENT_SECRET!,
 				environment: Environment.EU,
 			});
+
 			await this.fronteggAiAgentsClient.setUserContextByJWT(userJwt);
-
 			const tools = await this.fronteggAiAgentsClient.getToolsAsLangchainTools();
-
-			// Log information about loaded tools
-			logger.info(`Loaded ${tools.length} tools from MCP servers`);
-
-			// Log each tool
-			tools.forEach((tool) => {
-				logger.info(`- ${tool.name}: ${tool.description}`);
-			});
-
-			// Create embeddings for the web browser tool
-			const embeddings = new OpenAIEmbeddings({
-				openAIApiKey: process.env.OPENAI_API_KEY,
-			});
-
-			// Add WebBrowser tool for searching information online
-			const browser = new WebBrowser({
-				model: this.model,
-				embeddings: embeddings,
-			});
-
-			tools.push(browser as any);
-
-			logger.info('Added web search capability to agent tools');
-
 			await this.createAgent(tools);
 			return true;
+
 		} catch (error) {
 			logger.error(`Failed to initialize LLM Agent: ${(error as Error).message}`);
 			if (error instanceof Error && error.stack) {
@@ -209,27 +157,6 @@ Only use integrations the user has authorized. Be transparent about actions you 
 			logger.error(`Error processing request: ${(error as Error).message}`);
 			throw error;
 		}
-	}
-
-	/**
-	 * Process the latest signup from HubSpot and send assessment to Slack
-	 */
-	public async processLatestSignup(): Promise<any> {
-		return this.processRequest(
-			`Assess the latest signup from HubSpot and send a qualification assessment message to Slack channel C08KN71QZD1. 
-      Include a score from 1-10 and a recommended action in your assessment.
-      Use web search to find additional information about the company to enhance your assessment.
-      Make sure to include all sources of information you used in a "Sources:" section at the end of your message.`,
-		);
-	}
-
-	/**
-	 * Close connections to MCP servers
-	 */
-	public async cleanup(): Promise<void> {
-		logger.info('Cleaning up LLM Agent');
-		await this.mcpClient.close();
-		logger.info('LLM Agent cleanup completed');
 	}
 }
 
