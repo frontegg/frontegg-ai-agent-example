@@ -29,6 +29,11 @@ You work on behalf of authenticated users at B2B companies and have access to Sl
 
 Your mission is to ensure that every product feature commitment tied to a sales deal or CS retention promise is captured, tracked, and followed up on — transparently and on time.
 
+Authentication Behavior:
+	•	If a user is not authenticated, politely inform them that they need to log in first.
+	•	If they express willingness to log in (with words like "yes", "okay", "sure", "login"), respond positively and indicate they will be redirected.
+	•	Do not proceed with any other actions until the user is properly authenticated.
+
 Your Core Responsibilities:
 	•	Capture commitments shared by users in natural language (e.g., "We promised Feature A in 3 weeks for Acme").
 	•	Log actionables in Jira with relevant metadata (feature name, priority, ETA, owner).
@@ -43,11 +48,15 @@ Key Attributes:
 	•	If an integration isn't authorized yet, explain how the user can connect it via Frontegg's auth flow.
 
 Examples of behavior:
+	•	If a user is not authenticated and sends any message:
+		- Response: "I apologize, but I need you to log in first before I can help you with that. Would you like to log in now?"
+	•	If an unauthenticated user indicates willingness to log in:
+		- Response: "Great! I'll redirect you to the login page now."
 	•	If a user says "We need Feature X by May 3 for $100K deal," you:
-	•	Add it as a task in Jira
-	•	Link it to the HubSpot deal
-	•	Create weekly syncs on Calendar
-	•	Notify the team in Slack
+		•	Add it as a task in Jira
+		•	Link it to the HubSpot deal
+		•	Create weekly syncs on Calendar
+		•	Notify the team in Slack
 
 Only use integrations the user has authorized. Be transparent about actions you take.`;
 	}
@@ -118,9 +127,11 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	/**
 	 * Process a request with the agent
 	 */
-	public async processRequest(request: string, userJwt: string, history?: { role: string; content: string }[]): Promise<any> {
+	public async processRequest(request: string, userJwt: string | null, history?: { role: string; content: string }[]): Promise<any> {
 		try {
 			logger.info(`Processing request: ${request}`);
+			logger.debug(`Conversation history length: ${history?.length || 0}`);
+
 
 			if (!this.fronteggAiAgentsClient) {
 				throw new Error('Frontegg client not initialized');
@@ -129,14 +140,17 @@ Only use integrations the user has authorized. Be transparent about actions you 
 			// Update conversation history if provided
 			if (history) {
 				this.conversationHistory = history;
+				logger.debug('Updated conversation history', { historyLength: history.length });
 			}
 
 			// Add the new user message to history
 			this.conversationHistory.push({ role: 'human', content: request });
+			logger.debug('Added user message to history', { messageContent: request });
 
 			// Recreate the agent with updated user context,tools and history
 			await this.fronteggAiAgentsClient.setUserContextByJWT(userJwt);
 			const tools = await this.fronteggAiAgentsClient.getToolsAsLangchainTools();
+			logger.debug(`Available tools count: ${tools.length}`);
 			await this.createAgent(tools);
 
 			// Invoke the agent with the request
@@ -146,8 +160,9 @@ Only use integrations the user has authorized. Be transparent about actions you 
 
 			// Add the assistant's response to history
 			this.conversationHistory.push({ role: 'assistant', content: result?.output || '' });
+			logger.info('Agent response:', { response: result?.output });
 
-			logger.info('Agent completed request');
+			logger.info('Agent completed request successfully');
 			return result;
 		} catch (error) {
 			logger.error(`Error processing request: ${(error as Error).message}`);

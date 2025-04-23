@@ -4,10 +4,6 @@ import { ChatMessage, Message } from './ChatMessage';
 import { PromptInput } from './PromptInput';
 import { ContextHolder, useAuth } from '@frontegg/react';
 
-interface QualificationResult {
-  output: string;
-}
-
 interface AgentChatProps {
   onLogin: () => void;
   isAuthenticated: boolean;
@@ -16,7 +12,6 @@ interface AgentChatProps {
 export function AgentChat({ onLogin, isAuthenticated }: AgentChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [qualificationResult, setQualificationResult] = useState<QualificationResult | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
@@ -50,80 +45,38 @@ export function AgentChat({ onLogin, isAuthenticated }: AgentChatProps) {
   const handleSubmit = async (prompt: string) => {
     if (!prompt.trim()) return;
 
-    // If not authenticated and user types anything like "yes", "okay", "sure", etc.
-    if (!isAuthenticated && /^(yes|yeah|sure|ok|okay|login|log in|signin|sign in)/i.test(prompt)) {
-      setMessages(prev => [
-        ...prev,
-        { role: 'user', content: prompt },
-        { role: 'assistant', content: "Great! I'll redirect you to the login page now." }
-      ]);
-      setTimeout(() => {
-        onLogin();
-      }, 1500);
-      return;
-    }
-
-    // If not authenticated, remind the user to log in
-    if (!isAuthenticated) {
-      setMessages(prev => [
-        ...prev,
-        { role: 'user', content: prompt },
-        { 
-          role: 'assistant', 
-          content: "I apologize, but I need you to log in first before I can help you with that. Would you like to log in now?" 
-        }
-      ]);
-      return;
-    }
-
-    const newMessage: Message = { role: 'user', content: prompt };
-    setMessages(prev => [...prev, newMessage]);
+    setMessages(prev => [...prev, { role: 'user', content: prompt }]);
     setIsLoading(true);
 
-    // Construct API URL from environment variable
-    // Ensure VITE_ prefix is used for client-side env vars
-    const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/agent`;
-    const token = ContextHolder.default().getAccessToken();
-
     try {
-      const response = await fetch(apiUrl, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agent`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': isAuthenticated ? `Bearer ${ContextHolder.default().getAccessToken()}` : '',
+        },
         body: JSON.stringify({ 
           message: prompt,
-          history: messages // Send the entire conversation history
+          history: messages 
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
-
       const data = await response.json();
       
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
 
-      const assistantMessage: Message = { 
-        role: 'assistant', 
-        content: typeof data.response === 'string' ? data.response : JSON.stringify(data.response)
-      };
-      
-      setMessages(prev => [...prev, assistantMessage]);
-
-      if (data.qualificationResult) {
-        setQualificationResult(data.qualificationResult);
+      // If agent indicates login redirect and user is not authenticated
+      if (!isAuthenticated && data.response.includes("redirect you to the login page")) {
+        setTimeout(() => {
+          onLogin();
+        }, 1500);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => [
-        ...prev,
-        { 
-          role: 'assistant', 
-          content: error instanceof Error ? error.message : 'Sorry, I encountered an error. Please try again.'
-        }
-      ]);
+      console.error('Error:', error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'I apologize, but I encountered an error processing your request. Please try again.'
+      }]);
     } finally {
       setIsLoading(false);
     }
