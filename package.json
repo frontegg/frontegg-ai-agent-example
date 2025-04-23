@@ -1,7 +1,7 @@
 {
-  "name": "qualification-agent",
+  "name": "commitment-lifecycle-agent",
   "version": "1.0.0",
-  "description": "AI agent that connects to Hubspot and Slack via MCP to assess company qualification",
+  "description": "An autonomous B2B agent that helps sales and customer success teams track and fulfill product feature commitments by integrating with Slack, Jira, HubSpot, and Google Calendar",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

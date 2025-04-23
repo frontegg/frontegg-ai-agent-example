@@ -1,9 +1,9 @@
 import 'dotenv/config'; // Load .env variables
 import express, { Request, Response } from 'express';
 import cors from 'cors'; // Import cors
-import { createLLMAgent } from './services/llm-agent'; // Adjust path if needed
+import { createLLMAgent, LLMAgent } from './services/llm-agent'; // Adjust path if needed
 import { logger } from './utils/logger'; // Assuming logger is setup similarly
-import { withAuthentication, FronteggContext } from '@frontegg/client';
+import {  FronteggContext } from '@frontegg/client';
 
 const app = express();
 FronteggContext.init({
@@ -22,12 +22,14 @@ app.use(cors());
 app.use(express.json()); // Middleware to parse JSON bodies
 
 // Create a singleton instance of the agent
-let agent: any = null;
+let agent: LLMAgent | null = null;
 let isInitializing = false;
 let initializationError: Error | null = null;
 
 async function getAgentInstance(userJwt: string) {
 	if (agent) {
+		// Set context for existing agent instance using the new JWT
+		await agent.setUserContext(userJwt);
 		return agent;
 	}
 	if (isInitializing) {

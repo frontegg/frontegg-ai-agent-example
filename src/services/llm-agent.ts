@@ -120,6 +120,21 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	}
 
 	/**
+	 * Set user context using JWT
+	 */
+	public async setUserContext(userJwt: string): Promise<void> {
+		try {
+			if (!this.fronteggAiAgentsClient) {
+				throw new Error('Frontegg client not initialized');
+			}
+			await this.fronteggAiAgentsClient.setUserContextByJWT(userJwt);
+		} catch (error) {
+			logger.error(`Failed to set user context: ${(error as Error).message}`);
+			throw error;
+		}
+	}
+
+	/**
 	 * Process a request with the agent
 	 */
 	public async processRequest(request: string, history?: { role: string; content: string }[]): Promise<any> {

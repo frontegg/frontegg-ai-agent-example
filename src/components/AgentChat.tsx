@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessage, Message } from './ChatMessage';
 import { PromptInput } from './PromptInput';
-import { QualificationCard } from './QualificationCard';
 import { ContextHolder, useAuth } from '@frontegg/react';
 
 interface QualificationResult {
@@ -152,19 +151,6 @@ export function AgentChat({ onLogin, isAuthenticated }: AgentChatProps) {
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {qualificationResult && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="p-4"
-              >
-                <QualificationCard result={qualificationResult.output} />
               </motion.div>
             )}
           </AnimatePresence>
