@@ -11,18 +11,34 @@ export interface Message {
   content: string;
 }
 
-interface ChatMessageProps {
-  message: Message;
+interface UserInfo {
+  profilePictureUrl?: string | null;
+  name?: string | null;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+interface ChatMessageProps {
+  message: Message;
+  user?: UserInfo | null;
+}
+
+export function ChatMessage({ message, user }: ChatMessageProps) {
   const isUser = message.role === 'user';
 
   return (
     <div className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       {isUser ? (
-        <div className="flex-shrink-0 w-auto h-8 rounded-full bg-indigo-500 flex items-center justify-center px-3 shadow-sm">
-          <span className="text-sm font-medium text-white">User</span>
+        <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden">
+          {user?.profilePictureUrl ? (
+            <img 
+              src={user.profilePictureUrl} 
+              alt={user.name || 'User'} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white font-medium">
+              {user?.name?.charAt(0) || 'U'}
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 shadow-sm">

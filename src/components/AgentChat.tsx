@@ -3,24 +3,42 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessage, Message } from './ChatMessage';
 import { PromptInput } from './PromptInput';
 import { QualificationCard } from './QualificationCard';
-import { ContextHolder } from '@frontegg/react';
+import { ContextHolder, useAuth } from '@frontegg/react';
 
 interface QualificationResult {
   output: string;
 }
 
-export function AgentChat() {
+interface AgentChatProps {
+  onLogin: () => void;
+  isAuthenticated: boolean;
+}
+
+export function AgentChat({ onLogin, isAuthenticated }: AgentChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [qualificationResult, setQualificationResult] = useState<QualificationResult | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   // Add initial welcome message on mount
   React.useEffect(() => {
-    setMessages([
-      { role: 'assistant', content: "Hi there! I'm Jenny, your Customer Commitment Lifecycle agent. How can I help you track feature commitments today?" }
-    ]);
-  }, []); // Empty dependency array ensures this runs only once on mount
+    if (!isAuthenticated) {
+      setMessages([
+        { 
+          role: 'assistant', 
+          content: "Hi there! I'm Jenny, your Customer Commitment Lifecycle agent. Before we can get started, I'll need you to log in. This helps me securely access the tools I need to help you track feature commitments. Would you like to log in now?" 
+        }
+      ]);
+    } else {
+      setMessages([
+        { 
+          role: 'assistant', 
+          content: `Hi ${user?.name || 'there'}! I'm Jenny, your Customer Commitment Lifecycle agent. How can I help you track feature commitments today?` 
+        }
+      ]);
+    }
+  }, [isAuthenticated, user?.name]); // Re-run when authentication state or user name changes
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,6 +51,32 @@ export function AgentChat() {
   const handleSubmit = async (prompt: string) => {
     if (!prompt.trim()) return;
 
+    // If not authenticated and user types anything like "yes", "okay", "sure", etc.
+    if (!isAuthenticated && /^(yes|yeah|sure|ok|okay|login|log in|signin|sign in)/i.test(prompt)) {
+      setMessages(prev => [
+        ...prev,
+        { role: 'user', content: prompt },
+        { role: 'assistant', content: "Great! I'll redirect you to the login page now." }
+      ]);
+      setTimeout(() => {
+        onLogin();
+      }, 1500);
+      return;
+    }
+
+    // If not authenticated, remind the user to log in
+    if (!isAuthenticated) {
+      setMessages(prev => [
+        ...prev,
+        { role: 'user', content: prompt },
+        { 
+          role: 'assistant', 
+          content: "I apologize, but I need you to log in first before I can help you with that. Would you like to log in now?" 
+        }
+      ]);
+      return;
+    }
+
     const newMessage: Message = { role: 'user', content: prompt };
     setMessages(prev => [...prev, newMessage]);
     setIsLoading(true);
@@ -41,6 +85,7 @@ export function AgentChat() {
     // Ensure VITE_ prefix is used for client-side env vars
     const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/agent`;
     const token = ContextHolder.default().getAccessToken();
+
     try {
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -90,7 +135,7 @@ export function AgentChat() {
       <div className="flex-1 overflow-y-auto pt-6">
         <div className="px-4 space-y-6">
           {messages.map((message, index) => (
-            <ChatMessage key={index} message={message} />
+            <ChatMessage key={index} message={message} user={user} />
           ))}
           <div ref={messagesEndRef} />
 
