@@ -38,7 +38,7 @@ export class LLMAgent {
 	constructor() {
 		// Create new model instance with GPT-4o
 		this.model = new ChatOpenAI({
-			modelName: 'gpt-4o',
+			model: 'gpt-4o',
 			temperature: 0.7,
 			openAIApiKey: process.env.OPENAI_API_KEY,
 		});
