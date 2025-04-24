@@ -2,7 +2,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { logger } from '../utils/logger';
 import { AgentExecutor, createOpenAIFunctionsAgent } from 'langchain/agents';
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
-import { Environment, FronteggAiAgentsClient } from '@frontegg/ai-agents-sdk';
+import { Environment, FronteggAiClient } from '@frontegg/ai-sdk';
 
 /**
  * LLM Agent that uses LangChain and MCP Adapters
@@ -13,7 +13,7 @@ export class LLMAgent {
 	private agent: AgentExecutor | null = null;
 	private conversationHistory: { role: string; content: string }[] = [];
 	private systemMessage: string;
-	private fronteggAiAgentsClient: FronteggAiAgentsClient | undefined;
+	private fronteggAiClient: FronteggAiClient | undefined;
 
 	constructor() {
 		// Create new model instance with GPT-4o
@@ -66,7 +66,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	 */
 	public async initializeFronteggAIAgentsClient(): Promise<boolean> {
 		try {
-			this.fronteggAiAgentsClient = await FronteggAiAgentsClient.getInstance({
+			this.fronteggAiClient = await FronteggAiClient.getInstance({
 				agentId: process.env.FRONTEGG_AGENT_ID!,
 				clientId: process.env.FRONTEGG_CLIENT_ID!,
 				clientSecret: process.env.FRONTEGG_CLIENT_SECRET!,
@@ -92,8 +92,8 @@ Only use integrations the user has authorized. Be transparent about actions you 
 			const messages = [
 				{
 					role: 'system',
-					content: this.fronteggAiAgentsClient
-						? this.fronteggAiAgentsClient.addUserContextToSystemPrompt(this.systemMessage)
+					content: this.fronteggAiClient
+						? this.fronteggAiClient.addUserContextToSystemPrompt(this.systemMessage)
 						: this.systemMessage,
 				},
 				...this.conversationHistory,
@@ -132,8 +132,17 @@ Only use integrations the user has authorized. Be transparent about actions you 
 			logger.info(`Processing request: ${request}`);
 			logger.debug(`Conversation history length: ${history?.length || 0}`);
 
+			// Handle unauthenticated users through the agent's system prompt
+			if (!userJwt) {
+				const isLoginIntent = /^(yes|yeah|sure|ok|okay|login|log in|signin|sign in)/i.test(request);
+				const response = isLoginIntent
+					? "Great! I'll redirect you to the login page now."
+					: "I apologize, but I need you to log in first before I can help you with that. Would you like to log in now?";
+				logger.info(`Unauthenticated user response: ${response}`);
+				return { output: response };
+			}
 
-			if (!this.fronteggAiAgentsClient) {
+			if (!this.fronteggAiClient) {
 				throw new Error('Frontegg client not initialized');
 			}
 
@@ -145,12 +154,10 @@ Only use integrations the user has authorized. Be transparent about actions you 
 
 			// Add the new user message to history
 			this.conversationHistory.push({ role: 'human', content: request });
-			logger.debug('Added user message to history', { messageContent: request });
 
 			// Recreate the agent with updated user context,tools and history
-			await this.fronteggAiAgentsClient.setUserContextByJWT(userJwt);
-			const tools = await this.fronteggAiAgentsClient.getToolsAsLangchainTools();
-			logger.debug(`Available tools count: ${tools.length}`);
+			await this.fronteggAiClient.setUserContextByJWT(userJwt);
+			const tools = await this.fronteggAiClient.getToolsAsLangchainTools();
 			await this.createAgent(tools);
 
 			// Invoke the agent with the request
@@ -160,9 +167,8 @@ Only use integrations the user has authorized. Be transparent about actions you 
 
 			// Add the assistant's response to history
 			this.conversationHistory.push({ role: 'assistant', content: result?.output || '' });
-			logger.info('Agent response:', { response: result?.output });
 
-			logger.info('Agent completed request successfully');
+			logger.info('Agent completed request');
 			return result;
 		} catch (error) {
 			logger.error(`Error processing request: ${(error as Error).message}`);
