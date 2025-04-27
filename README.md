@@ -45,38 +45,20 @@ The project showcases:
 
 ## Environment Variables
 
-Required environment variables:
-- `FRONTEGG_CLIENT_ID`: Your Frontegg client ID
-- `FRONTEGG_CLIENT_SECRET`: Your Frontegg client secret
-- `OPENAI_API_KEY`: OpenAI API key for the agent
-- Other integration-specific keys as needed
+Set the following environment variables in your `.env` file:
+
+### Shared backend and frontend vars
+- `VITE_FRONTEGG_CLIENT_ID` - Your Frontegg client ID (required for both frontend and backend)
+- `VITE_FRONTEGG_AGENT_ID` - Your Frontegg agent ID (required for both frontend and backend)
+
+### Backend only vars
+- `FRONTEGG_CLIENT_SECRET` - Your Frontegg client secret (used by backend only)
+- `OPENAI_API_KEY` - OpenAI API key for the agent (used by backend only)
+
+### Frontend only vars
+- `VITE_API_BASE_URL` - Base URL for the backend API (e.g., http://localhost:3001)
+- `VITE_FRONTEGG_BASE_URL` - Frontegg base URL for authentication (e.g., https://app-xxxx.stg.frontegg.com)
 
 ## Development Scripts
 
-- `npm run dev:all` - Start both frontend and backend in development mode
-- `npm run dev:fe` - Start frontend only
-- `npm run dev:server` - Start backend only
-- `npm run build:fe` - Build frontend
-- `npm test` - Run tests
-- `npm run lint` - Run ESLint
-
-## Project Structure
-
-```
-├── src/
-│   ├── components/    # React components
-│   ├── services/     # Agent and integration services
-│   ├── utils/        # Utility functions
-│   ├── server.ts     # Express backend
-│   └── main.tsx      # Frontend entry
-├── public/           # Static assets
-└── package.json      # Project configuration
-```
-
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines before submitting pull requests.
-
-## License
-
-MIT License - see LICENSE file for details 
+- `npm run dev:all`

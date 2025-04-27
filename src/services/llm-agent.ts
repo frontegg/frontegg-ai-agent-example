@@ -67,8 +67,8 @@ Only use integrations the user has authorized. Be transparent about actions you 
 	public async initializeFronteggAIAgentsClient(): Promise<boolean> {
 		try {
 			this.fronteggAiClient = await FronteggAiClient.getInstance({
-				agentId: process.env.FRONTEGG_AGENT_ID!,
-				clientId: process.env.FRONTEGG_CLIENT_ID!,
+				agentId: process.env.VITE_FRONTEGG_AGENT_ID!,
+				clientId: process.env.VITE_FRONTEGG_CLIENT_ID!,
 				clientSecret: process.env.FRONTEGG_CLIENT_SECRET!,
 				environment: Environment.EU,
 			});
