@@ -21,7 +21,7 @@ export default function Home() {
   }, []);
 
   const logout = () => {
-    const baseUrl = ContextHolder.getContext().baseUrl;
+    const baseUrl = import.meta.env.VITE_FRONTEGG_BASE_URL;
     window.location.href = `${baseUrl}/oauth/logout?post_logout_redirect_uri=${window.location}`;
   };
 
