@@ -1,5 +1,3 @@
-import { Callout } from 'nextra/components' // Assuming you use Nextra or a similar MDX framework
-
 # Building Authenticated AI Agents with Frontegg AI SDK: A Practical Guide
 
 This guide walks you through building a functional AI agent application using the Frontegg AI SDK, inspired by the "Commitment Lifecycle Agent" reference project. We'll cover setting up authentication, integrating third-party tools, and building a React frontend to interact with your agent.
@@ -20,26 +18,16 @@ Before you begin, ensure you have the following:
 
 *   [Node.js](https://nodejs.org/) (v18 or later recommended)
 *   [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-*   A [Frontegg Workspace](https://frontegg.com/)
+*   A [Frontegg Account](https://portal.frontegg.com/)
 *   An [OpenAI API Key](https://platform.openai.com/api-keys)
 *   Access keys/credentials for any third-party tools you want the agent to use.
 *   Git
 
-## 1. Project Setup
-
-First, clone the reference project (or set up your own based on this structure) and install dependencies.
-
-```bash
-git clone <your-repo-url> commitment-lifecycle-agent
-cd commitment-lifecycle-agent
-npm install
-```
-
-## 2. Frontegg Configuration
+## 1. Frontegg Configuration
 
 You need to configure Frontegg to handle authentication and define your agent.
 
-1.  **Create a Frontegg Application:**
+1.  **Get your Frontegg credentials:**
     *   Log in to your Frontegg environment via portal.frontegg.com
     *   Navigate to **Environments** -> **Development** (or your preferred environment).
     *   Go to **Settings** -> **Keys & Domains** and note down your **Client ID** and **Secret Key (API Key)**.
@@ -53,7 +41,7 @@ You need to configure Frontegg to handle authentication and define your agent.
 
 
 
-## 3. Environment Variables
+## 2. Environment Variables
 
 Create a `.env` file in the project root (you can copy from `.env.example` if it exists). Fill it with your credentials:
 
@@ -75,7 +63,7 @@ VITE_FRONTEGG_BASE_URL=YOUR_FRONTEGG_BASE_URL    # Frontegg Base URL (e.g., http
 **Security:** Never commit your `.env` file or expose secret keys in your frontend code. The `VITE_` prefix makes variables accessible in the Vite frontend; others are for the backend only.
 </Callout>
 
-## 4. Backend Implementation (Express.js, LangChain, OpenAI, Frontegg)
+## 3. Backend Implementation (Express.js, LangChain, OpenAI, Frontegg)
 
 The backend is responsible for agent logic, authentication, and tool execution. In this project, the backend is built with Express.js and uses a custom `LLMAgent` class that leverages LangChain, OpenAI, and the Frontegg AI SDK.
 
@@ -219,7 +207,7 @@ export function createLLMAgent(): LLMAgent {
 
 **Note:** The agent can only use integrations (Slack, Notion, etc.) that the user has authorized via Frontegg.
 
-## 5. Frontend Implementation (React + Vite)
+## 4. Frontend Implementation (React + Vite)
 
 The frontend provides the user interface for authentication and interaction with the agent.
 
@@ -249,86 +237,77 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 );
 ```
 
-**(File: `src/components/ChatInterface.tsx` - Conceptual)**
+**(File: `src/components/AgentChat.tsx` - Simplified Example)**
 
 ```typescript
-import React, { useState, useCallback } from 'react';
-import { useAuth, useLoginWithRedirect, ContextHolder } from "@frontegg/react";
+import React, { useState, useRef } from 'react';
 import { ChatMessage, Message } from './ChatMessage';
 import { PromptInput } from './PromptInput';
-import { UserInfo } from './UserInfo'; // Component to display user info/login button
+import { ContextHolder, useAuth, useLoginWithRedirect } from '@frontegg/react';
 
-const ChatInterface: React.FC = () => {
-  const { user, isAuthenticated, isLoading } = useAuth();
+export function AgentChat() {
+  const { isAuthenticated, user } = useAuth();
   const loginWithRedirect = useLoginWithRedirect();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isAgentLoading, setIsAgentLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSendMessage = useCallback(async (prompt: string) => {
+  // If not authenticated, immediately redirect to login
+  React.useEffect(() => {
     if (!isAuthenticated) {
-      // Optionally prompt user to log in
-      console.warn("User not authenticated");
-      return;
+      loginWithRedirect();
     }
+  }, [isAuthenticated, loginWithRedirect]);
 
-    const userMessage: Message = { role: 'user', content: prompt };
-    setMessages((prev) => [...prev, userMessage]);
-    setIsAgentLoading(true);
-
+  const handleSubmit = async (prompt: string) => {
+    if (!prompt.trim()) return;
+    setMessages(prev => [...prev, { role: 'user', content: prompt }]);
+    setIsLoading(true);
     try {
-      const accessToken = await getAccessToken(); // Get JWT token
-
-      const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/agent', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/agent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ContextHolder.default().getAccessToken()}`, // Send token for backend auth
+          'Authorization': `Bearer ${ContextHolder.default().getAccessToken()}`,
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({
+          message: prompt,
+          history: messages
+        }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-
       const data = await response.json();
-      const assistantMessage: Message = { role: 'assistant', content: data.response };
-      setMessages((prev) => [...prev, assistantMessage]);
-
-    } catch (error: any) {
-      console.error("Failed to send message:", error);
-      const errorMessage: Message = { role: 'assistant', content: `Error: ${error.message}` };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'I apologize, but I encountered an error processing your request. Please try again.'
+      }]);
     } finally {
-      setIsAgentLoading(false);
+      setIsLoading(false);
     }
-  }, [isAuthenticated, getAccessToken]);
+  };
 
   return (
-    <div className="flex flex-col h-screen">
-      {/* Header with UserInfo/Login Button */}
-      <header className="p-4 border-b">
-        <UserInfo user={user} isAuthenticated={isAuthenticated} isLoading={isLoading} login={loginWithRedirect} />
-      </header>
-
-      {/* Message List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, index) => (
-          <ChatMessage key={index} message={msg} user={user} />
-        ))}
-        {isAgentLoading && <ChatMessage message={{ role: 'assistant', content: 'Thinking...' }} />}
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto pt-6">
+        <div className="px-4 space-y-6">
+          {messages.map((message, index) => (
+            <ChatMessage key={index} message={message} user={user} />
+          ))}
+          <div ref={messagesEndRef} />
+          {isLoading && (
+            <div className="flex justify-center p-4">
+              <span>Jenny is thinking...</span>
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* Prompt Input */}
-      <div className="border-t">
-         <PromptInput onSubmit={handleSendMessage} disabled={isAgentLoading || !isAuthenticated} />
+      <div className="mt-auto border-t border-blue-100 dark:border-gray-700">
+        <PromptInput onSubmit={handleSubmit} disabled={isLoading} />
       </div>
     </div>
   );
-};
-
-export default ChatInterface;
+}
 ```
 
 **Key Frontend Points:**
