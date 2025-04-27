@@ -15,7 +15,7 @@ export function AgentChat({ onLogin, isAuthenticated }: AgentChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
-  // Add initial welcome message on mount
+  // Add initial welcome message on authentication
   useEffect(() => {
     if (!isAuthenticated) {
       setMessages([
