@@ -3,13 +3,8 @@ import express, { Request, Response } from 'express';
 import cors from 'cors'; // Import cors
 import { createLLMAgent, LLMAgent } from './services/llm-agent'; // Adjust path if needed
 import { logger } from './utils/logger'; // Assuming logger is setup similarly
-import {  FronteggContext } from '@frontegg/client';
 
 const app = express();
-FronteggContext.init({
-	FRONTEGG_CLIENT_ID: process.env.FRONTEGG_CLIENT_ID!,
-	FRONTEGG_API_KEY: process.env.FRONTEGG_CLIENT_SECRET!,
-});
 
 // Use SERVER_PORT from env, default to 3001 if not set
 const port = process.env.SERVER_PORT || 3001;
