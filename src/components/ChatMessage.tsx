@@ -43,7 +43,7 @@ export function ChatMessage({ message, user }: ChatMessageProps) {
       ) : (
         <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden shadow-sm">
           <img 
-            src="/Jenny_Bot_Logo_Optimized_Smaller.png" 
+            src="/jenny-logo.png" 
             alt="Jenny AI Assistant"
             className="w-full h-full object-cover"
           />
