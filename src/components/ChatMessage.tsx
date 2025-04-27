@@ -27,7 +27,7 @@ export function ChatMessage({ message, user }: ChatMessageProps) {
   return (
     <div className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       {isUser ? (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden">
+        <div className="flex-shrink-0 w-11 h-11 rounded-full overflow-hidden">
           {user?.profilePictureUrl ? (
             <img 
               src={user.profilePictureUrl} 
@@ -41,7 +41,7 @@ export function ChatMessage({ message, user }: ChatMessageProps) {
           )}
         </div>
       ) : (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden shadow-sm">
+        <div className="flex-shrink-0 w-11 h-11 rounded-full overflow-hidden shadow-sm">
           <img 
             src="/jenny-logo.png" 
             alt="Jenny AI Assistant"
