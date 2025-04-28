@@ -45,19 +45,39 @@ The project showcases:
 
 ## Environment Variables
 
-Set the following environment variables in your `.env` file:
+### Setup a Frontegg account
 
-### Shared backend and frontend vars
-- `VITE_FRONTEGG_CLIENT_ID` - Your Frontegg client ID (required for both frontend and backend)
-- `VITE_FRONTEGG_AGENT_ID` - Your Frontegg agent ID (required for both frontend and backend)
+1.  **Get your Frontegg credentials:**
+    *   Log in to your Frontegg environment via portal.frontegg.com
+    *   Navigate to **Environments** -> **Development** (or your preferred environment).
+    *   Go to **Settings** -> **Keys & Domains** and note down your **Client ID** and **Secret Key (API Key)**.
+    *   Go to **Settings** -> **Keys & Domains / Domains tab** and note down your **Frontegg Base URL** (e.g., `https://app-xxxx.frontegg.com`).
 
-### Backend only vars
-- `FRONTEGG_CLIENT_SECRET` - Your Frontegg client secret (used by backend only)
-- `OPENAI_API_KEY` - OpenAI API key for the agent (used by backend only)
+2.  **Create a Frontegg Agent:**
+    *   Navigate to the **AI Agents/Agents** section in your Frontegg environment.
+    *   Click **Create Agent**.
+    *   Give your agent a name (e.g., "My Cool Agent").
+    *   After Creation open the Agent page and note down the **Agent ID**.
 
-### Frontend only vars
-- `VITE_API_BASE_URL` - Base URL for the backend API (e.g., http://localhost:3001)
-- `VITE_FRONTEGG_BASE_URL` - Frontegg base URL for authentication (e.g., https://app-xxxx.stg.frontegg.com)
+
+
+### Configure your .env
+
+Create a `.env` file in the project root (you can copy from `.env.example`). Fill it with your credentials:
+
+```env title=".env"
+# Shared backend and frontend vars
+VITE_FRONTEGG_CLIENT_ID=YOUR_FRONTEGG_ENV_CLIENT_ID # Frontegg Client ID (step 1)
+VITE_FRONTEGG_AGENT_ID=YOUR_FRONTEGG_AGENT_ID     # Frontegg Agent ID (step 2)
+
+# Backend only vars
+FRONTEGG_CLIENT_SECRET=YOUR_FRONTEGG_ENV_API_KEY # Frontegg Application Secret Key (step 1)
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY                # OpenAI API Key
+
+# Frontend only vars
+VITE_API_BASE_URL=http://localhost:3001           # Your backend API URL
+VITE_FRONTEGG_BASE_URL=YOUR_FRONTEGG_BASE_URL    # Frontegg Base URL (e.g., https://app-xxxx.stg.frontegg.com) (step 2.1)
+```
 
 ## Development Scripts
 
