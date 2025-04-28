@@ -77,7 +77,3 @@ OPENAI_API_KEY=YOUR_OPENAI_API_KEY                # OpenAI API Key
 VITE_API_BASE_URL=http://localhost:3001           # Your backend API URL
 VITE_FRONTEGG_BASE_URL=YOUR_FRONTEGG_BASE_URL    # Frontegg Base URL (e.g., https://app-xxxx.stg.frontegg.com) (step 2.1)
 ```
-
-## Running the agent
-
-- `npm run dev:all`
