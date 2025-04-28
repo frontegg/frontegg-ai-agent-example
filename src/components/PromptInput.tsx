@@ -50,10 +50,13 @@ export function PromptInput({ onSubmit, disabled = false }: PromptInputProps) {
           onKeyDown={handleKeyDown}
           placeholder="Type your message..."
           rows={1}
-          className="flex-1 min-h-[44px] px-3 rounded-lg border border-blue-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
+          className="flex-1 min-h-[44px] px-3 py-3 rounded-lg border border-blue-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
           style={{
             maxHeight: '200px',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            lineHeight: '1.5',
+            display: 'flex',
+            alignItems: 'center'
           }}
           disabled={disabled}
         />
