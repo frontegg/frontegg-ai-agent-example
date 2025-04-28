@@ -39,7 +39,7 @@ export function ChatMessage({ message, user }: ChatMessageProps) {
   return (
     <div className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       {isUser ? (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden">
+        <div className="flex-shrink-0 w-10 h-10 self-start rounded-full overflow-hidden">
           {user?.profilePictureUrl ? (
             <img 
               src={user.profilePictureUrl} 
@@ -47,15 +47,15 @@ export function ChatMessage({ message, user }: ChatMessageProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white font-medium">
+            <div className="w-full h-full bg-indigo-500 flex items-center justify-center text-white text-base font-medium">
               {user?.name?.charAt(0) || 'U'}
             </div>
           )}
         </div>
       ) : (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden shadow-sm">
+        <div className="flex-shrink-0 w-10 h-10 self-start rounded-full overflow-hidden shadow-sm">
           <img 
-            src="/Jenny_Bot_Logo_Optimized_Smaller.png" 
+            src="/jenny-logo.png" 
             alt="Jenny AI Assistant"
             className="w-full h-full object-cover"
           />
