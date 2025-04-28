@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
+import * as shiki from 'shiki';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -23,6 +22,19 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, user }: ChatMessageProps) {
   const isUser = message.role === 'user';
+  const [highlighter, setHighlighter] = useState<shiki.Highlighter | null>(null);
+
+  useEffect(() => {
+    const initHighlighter = async () => {
+      const highlighter = await shiki.createHighlighter({
+        themes: ['one-dark-pro'],
+        langs: ['javascript', 'typescript', 'json', 'html', 'css', 'bash', 'jsx', 'tsx']
+      });
+      setHighlighter(highlighter);
+    };
+    
+    initHighlighter();
+  }, []);
 
   return (
     <div className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -60,21 +72,42 @@ export function ChatMessage({ message, user }: ChatMessageProps) {
           components={{
             code({ className, children }) {
               const match = /language-(\w+)/.exec(className || '');
-              return match ? (
-                <div className="rounded-lg overflow-hidden my-2 bg-gray-800 border border-gray-700">
-                  <div className="flex items-center justify-between px-4 py-2 bg-gray-900">
-                    <span className="text-xs text-gray-400">{match[1]}</span>
-                  </div>
-                  <SyntaxHighlighter
-                    style={atomDark}
-                    language={match[1]}
-                    PreTag="div"
-                    customStyle={{ margin: 0, borderRadius: 0 }}
-                  >
-                    {String(children).replace(/\n$/, '')}
-                  </SyntaxHighlighter>
-                </div>
-              ) : (
+              
+              if (match && highlighter) {
+                const code = String(children).replace(/\n$/, '');
+                const language = match[1];
+                
+                try {
+                  const html = highlighter.codeToHtml(code, { 
+                    lang: language,
+                    themes: {
+                      light: 'one-dark-pro',
+                      dark: 'one-dark-pro'
+                    }
+                  });
+                  return (
+                    <div className="rounded-lg overflow-hidden my-2 bg-gray-800 border border-gray-700">
+                      <div className="flex items-center justify-between px-4 py-2 bg-gray-900">
+                        <span className="text-xs text-gray-400">{language}</span>
+                      </div>
+                      <div 
+                        dangerouslySetInnerHTML={{ __html: html }}
+                        className="p-4"
+                      />
+                    </div>
+                  );
+                } catch (error) {
+                  console.error("Error highlighting code:", error);
+                  // Fallback to simple formatting if highlighting fails
+                  return (
+                    <pre className="rounded-lg overflow-x-auto p-4 my-2 bg-gray-800 border border-gray-700">
+                      <code>{code}</code>
+                    </pre>
+                  );
+                }
+              }
+              
+              return (
                 <code className={`px-1.5 py-0.5 rounded text-sm ${
                   isUser 
                     ? 'bg-indigo-400/20 text-white' 
