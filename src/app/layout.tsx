@@ -2,8 +2,9 @@ import '../styles/globals.css';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Qualification Agent - ReAct AI',
-  description: 'AI agent for company qualification using LangChain ReAct framework',
+	title: 'Commitment Lifecycle Agent',
+	description:
+		'A demonstration project showcasing how to build AI agents using Frontegg AI framework SDK for authentication, third-party integrations, and user context management. Features a B2B agent that manages product commitments through Slack, Jira, HubSpot, and Google Calendar integrations.',
 };
 
 export default function RootLayout({

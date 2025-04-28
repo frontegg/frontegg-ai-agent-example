@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessage, Message } from './ChatMessage';
 import { PromptInput } from './PromptInput';
@@ -15,8 +15,8 @@ export function AgentChat({ onLogin, isAuthenticated }: AgentChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
-  // Add initial welcome message on mount
-  React.useEffect(() => {
+  // Add initial welcome message on authentication
+  useEffect(() => {
     if (!isAuthenticated) {
       setMessages([
         { 
@@ -32,13 +32,13 @@ export function AgentChat({ onLogin, isAuthenticated }: AgentChatProps) {
         }
       ]);
     }
-  }, [isAuthenticated, user?.name]); // Re-run when authentication state or user name changes
+  }, [isAuthenticated]); // Re-run when authentication state changes
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
