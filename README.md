@@ -5,9 +5,9 @@ This project demonstrates how to build AI agents using the Frontegg AI framework
 ## Overview
 
 The project showcases:
-- Integration with Frontegg AI framework SDK for authentication and user management
-- Building AI agents with user and identity context
-- Connecting to third-party applications (Slack, Jira, HubSpot, Google Calendar)
+- Langchain integration with Frontegg AI typescript SDK for authentication, user management, and Frontegg's built-in and 3rd party app tools integration
+- Building Langchain AI agents with user and identity context
+- Using third-party application tools (Slack, Jira, HubSpot, Google Calendar) with a secure OAuth connection managed by Frontegg
 - React-based frontend with real-time agent interactions
 - Express.js backend for agent orchestration
 
@@ -21,7 +21,7 @@ The project showcases:
 
 - Frontend: React, Vite, TailwindCSS
 - Backend: Express.js, TypeScript
-- AI Framework: Frontegg AI Agents SDK
+- AI Framework: Langchain and Frontegg AI Agents SDK
 - Authentication: Frontegg
 - Integrations: Slack, Jira, HubSpot, Google Calendar
 
