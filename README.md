@@ -36,7 +36,6 @@ The project showcases:
    ```bash
    cp .env.example .env
    ```
-   Fill in your Frontegg credentials and other API keys
 
 4. Start the development server:
    ```bash
@@ -79,6 +78,6 @@ VITE_API_BASE_URL=http://localhost:3001           # Your backend API URL
 VITE_FRONTEGG_BASE_URL=YOUR_FRONTEGG_BASE_URL    # Frontegg Base URL (e.g., https://app-xxxx.stg.frontegg.com) (step 2.1)
 ```
 
-## Development Scripts
+## Running the agent
 
 - `npm run dev:all`
