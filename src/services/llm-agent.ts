@@ -92,9 +92,7 @@ Only use integrations the user has authorized. Be transparent about actions you 
 			const messages = [
 				{
 					role: 'system',
-					content: this.fronteggAiClient
-						? this.fronteggAiClient.addUserContextToSystemPrompt(this.systemMessage)
-						: this.systemMessage,
+					content: this.systemMessage
 				},
 				...this.conversationHistory,
 				new MessagesPlaceholder('agent_scratchpad'),

@@ -18,7 +18,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "@frontegg/ai-sdk": "^1.7.0",
+    "@frontegg/ai-sdk": "^1.8.0",
     "@frontegg/react": "^7.7.0",
     "@langchain/community": "^0.3.40",
     "@langchain/core": "^0.3.44",
