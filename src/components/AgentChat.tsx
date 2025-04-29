@@ -5,34 +5,24 @@ import { PromptInput } from './PromptInput';
 import { ContextHolder, useAuth } from '@frontegg/react';
 
 interface AgentChatProps {
-  onLogin: () => void;
   isAuthenticated: boolean;
 }
 
-export function AgentChat({ onLogin, isAuthenticated }: AgentChatProps) {
+export function AgentChat({ isAuthenticated }: AgentChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
-  // Add initial welcome message on authentication
+  // Add initial welcome message
   useEffect(() => {
-    if (!isAuthenticated) {
-      setMessages([
-        { 
-          role: 'assistant', 
-          content: "Hi there! I'm Jenny, your Customer Commitment Lifecycle agent. Before we can get started, I'll need you to log in. This helps me securely access the tools I need to help you track feature commitments. Would you like to log in now?" 
-        }
-      ]);
-    } else {
-      setMessages([
-        { 
-          role: 'assistant', 
-          content: `Hi ${user?.name || 'there'}! I'm Jenny, your Customer Commitment Lifecycle agent. How can I help you track feature commitments today?` 
-        }
-      ]);
-    }
-  }, [isAuthenticated]); // Re-run when authentication state changes
+    setMessages([
+      { 
+        role: 'assistant', 
+        content: `Hi ${user?.name || 'there'}! I'm Jenny, your Customer Commitment Lifecycle agent. How can I help you track feature commitments today?` 
+      }
+    ]);
+  }, []); // Only run once on mount
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -53,7 +43,7 @@ export function AgentChat({ onLogin, isAuthenticated }: AgentChatProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': isAuthenticated ? `Bearer ${ContextHolder.default().getAccessToken()}` : '',
+          'Authorization': `Bearer ${ContextHolder.default().getAccessToken()}`,
         },
         body: JSON.stringify({ 
           message: prompt,
@@ -64,13 +54,6 @@ export function AgentChat({ onLogin, isAuthenticated }: AgentChatProps) {
       const data = await response.json();
       
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-
-      // If agent indicates login redirect and user is not authenticated
-      if (!isAuthenticated && data.response.includes("redirect you to the login page")) {
-        setTimeout(() => {
-          onLogin();
-        }, 1500);
-      }
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, {

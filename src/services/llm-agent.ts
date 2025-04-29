@@ -5,8 +5,8 @@ import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts
 import { Environment, FronteggAiClient } from '@frontegg/ai-sdk';
 
 /**
- * LLM Agent that uses LangChain and MCP Adapters
- * Creates an agent that can autonomously use HubSpot and Slack MCP tools
+ * LLM Agent that uses OpenAI and Frontegg AI SDK
+ * Creates an agent that can autonomously use tools provided by Frontegg AI SDK to get the user context and 3rd party integrations such as Slack, Jira, HubSpot, Google Calendar
  */
 export class LLMAgent {
 	private model: ChatOpenAI;
@@ -29,11 +29,6 @@ You work on behalf of authenticated users at B2B companies and have access to Sl
 
 Your mission is to ensure that every product feature commitment tied to a sales deal or CS retention promise is captured, tracked, and followed up on — transparently and on time.
 
-Authentication Behavior:
-	•	If a user is not authenticated, politely inform them that they need to log in first.
-	•	If they express willingness to log in (with words like "yes", "okay", "sure", "login"), respond positively and indicate they will be redirected.
-	•	Do not proceed with any other actions until the user is properly authenticated.
-
 Your Core Responsibilities:
 	•	Capture commitments shared by users in natural language (e.g., "We promised Feature A in 3 weeks for Acme").
 	•	Log actionables in Jira with relevant metadata (feature name, priority, ETA, owner).
@@ -47,11 +42,7 @@ Key Attributes:
 	•	Communicate clearly, professionally, and with a helpful tone.
 	•	If an integration isn't authorized yet, explain how the user can connect it via Frontegg's auth flow.
 
-Examples of behavior:
-	•	If a user is not authenticated and sends any message:
-		- Response: "I apologize, but I need you to log in first before I can help you with that. Would you like to log in now?"
-	•	If an unauthenticated user indicates willingness to log in:
-		- Response: "Great! I'll redirect you to the login page now."
+Example:
 	•	If a user says "We need Feature X by May 3 for $100K deal," you:
 		•	Add it as a task in Jira
 		•	Link it to the HubSpot deal
@@ -130,14 +121,8 @@ Only use integrations the user has authorized. Be transparent about actions you 
 			logger.info(`Processing request: ${request}`);
 			logger.debug(`Conversation history length: ${history?.length || 0}`);
 
-			// Handle unauthenticated users through the agent's system prompt
 			if (!userJwt) {
-				const isLoginIntent = /^(yes|yeah|sure|ok|okay|login|log in|signin|sign in)/i.test(request);
-				const response = isLoginIntent
-					? "Great! I'll redirect you to the login page now."
-					: "I apologize, but I need you to log in first before I can help you with that. Would you like to log in now?";
-				logger.info(`Unauthenticated user response: ${response}`);
-				return { output: response };
+				throw new Error('User is not authenticated');
 			}
 
 			if (!this.fronteggAiClient) {
