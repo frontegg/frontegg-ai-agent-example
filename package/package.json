@@ -24,7 +24,7 @@
   "description": "",
   "dependencies": {
     "@langchain/mcp-adapters": "^0.4.2",
-    "@modelcontextprotocol/sdk": "1.10.1",
+    "@modelcontextprotocol/sdk": "1.25.2",
     "axios": "^1.7.9",
     "winston": "^3.17.0"
   },
